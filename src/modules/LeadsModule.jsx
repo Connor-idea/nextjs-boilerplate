@@ -1613,63 +1613,267 @@ const ContactsSection = ({ contacts, onUpdateContacts, isEdit, showToast }) => {
   );
 };
 
-// === 行业分类（国家标准 GB/T 4754）===
-const INDUSTRY_OPTIONS = [
-  '农、林、牧、渔业',
-  '采矿业',
-  '制造业',
-  '电力、热力、燃气及水生产和供应业',
-  '建筑业',
-  '批发和零售业',
-  '交通运输、仓储和邮政业',
-  '住宿和餐饮业',
-  '信息传输、软件和信息技术服务业',
-  '金融业',
-  '房地产业',
-  '租赁和商务服务业',
-  '科学研究和技术服务业',
-  '水利、环境和公共设施管理业',
-  '居民服务、修理和其他服务业',
-  '教育',
-  '卫生和社会工作',
-  '文化、体育和娱乐业',
-  '公共管理、社会保障和社会组织',
-  '国际组织',
+// === GB/T 4754-2017 国民经济行业分类（门类→大类→中类→小类）===
+const GB_T_4754 = [
+  { code:'A', name:'农、林、牧、渔业', children:[
+    { code:'01', name:'农业', children:[
+      { code:'011', name:'谷物种植', children:[{code:'0111',name:'稻谷种植'},{code:'0112',name:'小麦种植'},{code:'0113',name:'玉米种植'},{code:'0114',name:'豆类种植'},{code:'0115',name:'薯类种植'},{code:'0116',name:'棉花种植'},{code:'0117',name:'麻类种植'},{code:'0118',name:'糖料种植'},{code:'0119',name:'其他谷物种植'}]},
+      { code:'012', name:'蔬菜、食用菌及园艺作物种植', children:[{code:'0121',name:'蔬菜种植'},{code:'0122',name:'食用菌种植'},{code:'0123',name:'花卉种植'},{code:'0129',name:'其他园艺作物种植'}]},
+      { code:'013', name:'水果种植', children:[{code:'0131',name:'仁果类和核果类水果种植'},{code:'0132',name:'葡萄种植'},{code:'0133',name:'柑橘类种植'},{code:'0134',name:'热带、亚热带水果种植'},{code:'0139',name:'其他水果种植'}]},
+      { code:'014', name:'坚果、含油果、香料和饮料作物种植', children:[{code:'0141',name:'坚果种植'},{code:'0142',name:'含油果种植'},{code:'0143',name:'香料作物种植'},{code:'0144',name:'茶及其他饮料作物种植'}]},
+      {code:'015',name:'中草药材种植'},{code:'016',name:'烟草种植'},{code:'017',name:'其他农业'},
+    ]},
+    { code:'02', name:'林业', children:[{code:'021',name:'林木育种和育苗'},{code:'022',name:'造林和更新'},{code:'023',name:'森林经营和管护'},{code:'024',name:'木材和竹材采运'},{code:'025',name:'林业辅助活动'}]},
+    { code:'03', name:'牧业', children:[
+      { code:'031', name:'牲畜饲养', children:[{code:'0311',name:'牛的饲养'},{code:'0312',name:'马的饲养'},{code:'0313',name:'猪的饲养'},{code:'0314',name:'羊的饲养'},{code:'0315',name:'家禽饲养'},{code:'0316',name:'兔的饲养'},{code:'0319',name:'其他牲畜饲养'}]},
+      {code:'032',name:'狩猎和捕捉动物'},
+    ]},
+    { code:'04', name:'渔业', children:[
+      { code:'041', name:'水产养殖', children:[{code:'0411',name:'海水养殖'},{code:'0412',name:'内陆养殖'}]},
+      { code:'042', name:'水产捕捞', children:[{code:'0421',name:'海洋捕捞'},{code:'0422',name:'内陆捕捞'}]},
+    ]},
+    {code:'05',name:'农、林、牧、渔专业及辅助性活动'},
+  ]},
+  { code:'B', name:'采矿业', children:[
+    { code:'06', name:'煤炭开采和洗选业', children:[{code:'061',name:'烟煤和无烟煤的开采洗选'},{code:'062',name:'褐煤的开采洗选'},{code:'069',name:'其他煤炭采选'}]},
+    { code:'07', name:'石油和天然气开采业', children:[{code:'071',name:'石油开采'},{code:'072',name:'天然气开采'}]},
+    { code:'08', name:'黑色金属矿采选业', children:[{code:'081',name:'铁矿采选'},{code:'089',name:'其他黑色金属矿采选'}]},
+    { code:'09', name:'有色金属矿采选业', children:[{code:'091',name:'常用有色金属矿采选'},{code:'092',name:'贵金属矿采选'},{code:'093',name:'稀有稀土金属矿采选'}]},
+    { code:'10', name:'非金属矿采选业', children:[{code:'101',name:'土砂石开采'},{code:'102',name:'化学矿开采'},{code:'103',name:'采盐'},{code:'109',name:'其他非金属矿采选'}]},
+    {code:'11',name:'开采专业及辅助性活动'},{code:'12',name:'其他采矿业'},
+  ]},
+  { code:'C', name:'制造业', children:[
+    { code:'13', name:'农副食品加工业', children:[{code:'131',name:'谷物磨制'},{code:'132',name:'饲料加工'},{code:'133',name:'植物油加工'},{code:'134',name:'制糖业'},{code:'135',name:'屠宰及肉类加工'},{code:'136',name:'水产品加工'},{code:'137',name:'蔬菜、菌类、水果和坚果加工'},{code:'139',name:'其他农副食品加工'}]},
+    { code:'14', name:'食品制造业', children:[{code:'141',name:'焙烤食品制造'},{code:'142',name:'糖果、巧克力及蜜饯制造'},{code:'143',name:'方便食品制造'},{code:'144',name:'液体乳及乳制品制造'},{code:'145',name:'罐头食品制造'},{code:'146',name:'调味品、发酵制品制造'},{code:'149',name:'其他食品制造'}]},
+    { code:'15', name:'酒、饮料和精制茶制造业', children:[
+      { code:'151', name:'酒的制造', children:[{code:'1511',name:'酒精制造'},{code:'1512',name:'白酒制造'},{code:'1513',name:'啤酒制造'},{code:'1514',name:'黄酒制造'},{code:'1515',name:'葡萄酒制造'},{code:'1519',name:'其他酒制造'}]},
+      { code:'152', name:'饮料制造', children:[{code:'1521',name:'碳酸饮料制造'},{code:'1522',name:'瓶（桶）装饮用水制造'},{code:'1523',name:'果蔬汁及果蔬汁饮料制造'},{code:'1524',name:'含乳饮料和植物蛋白饮料制造'},{code:'1525',name:'固体饮料制造'},{code:'1529',name:'茶饮料及其他饮料制造'}]},
+      {code:'153',name:'精制茶加工'},
+    ]},
+    { code:'16', name:'烟草制品业', children:[{code:'161',name:'烟叶复烤'},{code:'162',name:'卷烟制造'},{code:'169',name:'其他烟草制品制造'}]},
+    { code:'17', name:'纺织业', children:[{code:'171',name:'棉纺织及印染精加工'},{code:'172',name:'毛纺织及染整精加工'},{code:'173',name:'麻纺织及染整精加工'},{code:'174',name:'丝绢纺织及印染精加工'},{code:'175',name:'化纤织造及印染精加工'},{code:'176',name:'针织或钩针编织物及其制品制造'},{code:'177',name:'家用纺织制成品制造'},{code:'178',name:'产业用纺织制成品制造'}]},
+    { code:'18', name:'纺织服装、服饰业', children:[{code:'181',name:'机织服装制造'},{code:'182',name:'针织或钩针编织服装制造'},{code:'183',name:'服饰制造'}]},
+    { code:'19', name:'皮革、毛皮、羽毛及其制品和制鞋业', children:[{code:'191',name:'皮革鞣制加工'},{code:'192',name:'皮革制品制造'},{code:'193',name:'毛皮鞣制及制品加工'},{code:'194',name:'羽毛（绒）加工及制品制造'},{code:'195',name:'制鞋业'}]},
+    { code:'20', name:'木材加工和木、竹、藤、棕、草制品业', children:[{code:'201',name:'木材加工'},{code:'202',name:'人造板制造'},{code:'203',name:'木制品制造'},{code:'204',name:'竹、藤、棕、草制品制造'}]},
+    { code:'21', name:'家具制造业', children:[{code:'211',name:'木质家具制造'},{code:'212',name:'竹、藤家具制造'},{code:'213',name:'金属家具制造'},{code:'214',name:'塑料家具制造'},{code:'219',name:'其他家具制造'}]},
+    { code:'22', name:'造纸和纸制品业', children:[{code:'221',name:'纸浆制造'},{code:'222',name:'造纸'},{code:'223',name:'纸制品制造'}]},
+    { code:'23', name:'印刷和记录媒介复制业', children:[{code:'231',name:'印刷'},{code:'232',name:'装订及印刷相关服务'},{code:'233',name:'记录媒介复制'}]},
+    { code:'24', name:'文教、工美、体育和娱乐用品制造业', children:[{code:'241',name:'文具制造'},{code:'242',name:'笔的制造'},{code:'243',name:'教学用模型及教具制造'},{code:'244',name:'工艺美术品制造'},{code:'245',name:'体育用品制造'},{code:'246',name:'玩具制造'},{code:'247',name:'游艺器材及娱乐用品制造'}]},
+    { code:'25', name:'石油、煤炭及其他燃料加工业', children:[{code:'251',name:'精炼石油产品制造'},{code:'252',name:'煤炭加工'},{code:'253',name:'核燃料加工'},{code:'259',name:'其他燃料加工业'}]},
+    { code:'26', name:'化学原料和化学制品制造业', children:[{code:'261',name:'基础化学原料制造'},{code:'262',name:'化学肥料制造'},{code:'263',name:'农药制造'},{code:'264',name:'涂料、油墨、颜料及类似产品制造'},{code:'265',name:'合成材料制造'},{code:'266',name:'专用化学产品制造'},{code:'267',name:'炸药、火工及焰火产品制造'},{code:'268',name:'日用化学产品制造'}]},
+    { code:'27', name:'医药制造业', children:[{code:'271',name:'化学药品原料药制造'},{code:'272',name:'化学药品制剂制造'},{code:'273',name:'中药饮片加工'},{code:'274',name:'中成药生产'},{code:'275',name:'兽用药品制造'},{code:'276',name:'生物药品制品制造'},{code:'277',name:'卫生材料及医药用品制造'}]},
+    { code:'28', name:'化学纤维制造业', children:[{code:'281',name:'纤维素纤维原料及纤维制造'},{code:'282',name:'合成纤维制造'}]},
+    { code:'29', name:'橡胶和塑料制品业', children:[{code:'291',name:'橡胶制品业'},{code:'292',name:'塑料制品业'}]},
+    { code:'30', name:'非金属矿物制品业', children:[{code:'301',name:'水泥、石灰和石膏制造'},{code:'302',name:'石膏、水泥制品及类似制品制造'},{code:'303',name:'砖瓦、石材等建筑材料制造'},{code:'304',name:'玻璃制造'},{code:'305',name:'玻璃制品制造'},{code:'306',name:'玻璃纤维和玻璃纤维增强塑料制品制造'},{code:'307',name:'陶瓷制品制造'},{code:'308',name:'耐火材料制品制造'},{code:'309',name:'石墨及其他非金属矿物制品制造'}]},
+    { code:'31', name:'黑色金属冶炼和压延加工业', children:[{code:'311',name:'炼铁'},{code:'312',name:'炼钢'},{code:'313',name:'钢压延加工'},{code:'314',name:'铁合金冶炼'}]},
+    { code:'32', name:'有色金属冶炼和压延加工业', children:[{code:'321',name:'常用有色金属冶炼'},{code:'322',name:'贵金属冶炼'},{code:'323',name:'稀有稀土金属冶炼'},{code:'324',name:'有色金属压延加工'}]},
+    { code:'33', name:'金属制品业', children:[{code:'331',name:'结构性金属制品制造'},{code:'332',name:'金属工具制造'},{code:'333',name:'集装箱及金属包装容器制造'},{code:'334',name:'金属丝绳及其制品制造'},{code:'335',name:'建筑、安全用金属制品制造'},{code:'336',name:'金属表面处理及热处理加工'},{code:'337',name:'搪瓷制品制造'},{code:'338',name:'金属制日用品制造'},{code:'339',name:'其他金属制品制造'}]},
+    { code:'34', name:'通用设备制造业', children:[{code:'341',name:'锅炉及原动设备制造'},{code:'342',name:'金属加工机械制造'},{code:'343',name:'物料搬运机械制造'},{code:'344',name:'泵、阀门、压缩机及类似机械制造'},{code:'345',name:'轴承、齿轮和传动部件制造'},{code:'346',name:'烘炉、风机、衡器、包装等设备制造'},{code:'347',name:'文化、办公用机械制造'},{code:'348',name:'通用零部件制造'},{code:'349',name:'其他通用设备制造'}]},
+    { code:'35', name:'专用设备制造业', children:[{code:'351',name:'采矿、冶金、建筑专用设备制造'},{code:'352',name:'化工、木材、非金属加工专用设备制造'},{code:'353',name:'食品、饮料、烟草及饲料生产专用设备制造'},{code:'354',name:'印刷、制药、日化及日用品生产专用设备制造'},{code:'355',name:'纺织、服装和皮革加工专用设备制造'},{code:'356',name:'电子和电工机械专用设备制造'},{code:'357',name:'农、林、牧、渔专用机械制造'},{code:'358',name:'医疗仪器设备及器械制造'},{code:'359',name:'其他专用设备制造'}]},
+    { code:'36', name:'汽车制造业', children:[
+      { code:'361', name:'汽车整车制造', children:[{code:'3611',name:'载客汽车制造'},{code:'3612',name:'载货汽车制造'},{code:'3619',name:'其他汽车整车制造'}]},
+      {code:'362',name:'汽车用发动机制造'},{code:'363',name:'改装汽车制造'},{code:'364',name:'低速汽车制造'},{code:'365',name:'电车制造'},{code:'366',name:'汽车车身、挂车制造'},
+      { code:'367', name:'汽车零部件及配件制造', children:[{code:'3671',name:'汽车车身附件及零件制造'},{code:'3672',name:'汽车驾驶系统及零件制造'},{code:'3679',name:'其他汽车零部件及配件制造'}]},
+    ]},
+    { code:'37', name:'铁路、船舶、航空航天和其他运输设备制造业', children:[{code:'371',name:'铁路运输设备制造'},{code:'372',name:'城市轨道交通设备制造'},{code:'373',name:'船舶及相关装置制造'},{code:'374',name:'航空、航天器及设备制造'},{code:'375',name:'摩托车制造'},{code:'376',name:'自行车和残疾人座车制造'},{code:'377',name:'助动车制造'},{code:'379',name:'其他运输设备制造'}]},
+    { code:'38', name:'电气机械和器材制造业', children:[{code:'381',name:'电机制造'},{code:'382',name:'输配电及控制设备制造'},{code:'383',name:'电线、电缆、光缆及电工器材制造'},{code:'384',name:'电池制造'},{code:'385',name:'家用电力器具制造'},{code:'386',name:'非电力家用器具制造'},{code:'387',name:'照明器具制造'},{code:'389',name:'其他电气机械及器材制造'}]},
+    { code:'39', name:'计算机、通信和其他电子设备制造业', children:[
+      { code:'391', name:'计算机制造', children:[{code:'3911',name:'计算机整机制造'},{code:'3912',name:'计算机零部件制造'},{code:'3913',name:'计算机外围设备制造'},{code:'3919',name:'其他计算机制造'}]},
+      { code:'392', name:'通信设备制造', children:[{code:'3921',name:'通信系统设备制造'},{code:'3922',name:'通信终端设备制造'}]},
+      {code:'393',name:'广播电视设备制造'},{code:'394',name:'雷达及配套设备制造'},{code:'395',name:'非专业视听设备制造'},{code:'396',name:'智能消费设备制造'},
+      { code:'397', name:'电子器件制造', children:[{code:'3971',name:'电子真空器件制造'},{code:'3972',name:'半导体分立器件制造'},{code:'3973',name:'集成电路制造'},{code:'3974',name:'显示器件制造'},{code:'3975',name:'半导体照明器件制造'},{code:'3979',name:'其他电子器件制造'}]},
+      {code:'398',name:'电子元件及电子专用材料制造'},{code:'399',name:'其他电子设备制造'},
+    ]},
+    { code:'40', name:'仪器仪表制造业', children:[{code:'401',name:'通用仪器仪表制造'},{code:'402',name:'专用仪器仪表制造'},{code:'403',name:'钟表与计时仪器制造'},{code:'404',name:'光学仪器制造'},{code:'405',name:'衡器制造'},{code:'409',name:'其他仪器仪表制造'}]},
+    { code:'41', name:'其他制造业', children:[{code:'411',name:'日用杂品制造'},{code:'419',name:'其他未列明制造业'}]},
+    { code:'42', name:'废弃资源综合利用业', children:[{code:'421',name:'金属废料和碎屑加工处理'},{code:'422',name:'非金属废料和碎屑加工处理'}]},
+    { code:'43', name:'金属制品、机械和设备修理业', children:[{code:'431',name:'金属制品修理'},{code:'432',name:'通用设备修理'},{code:'433',name:'专用设备修理'},{code:'434',name:'铁路、船舶、航空航天等运输设备修理'},{code:'435',name:'电气设备修理'},{code:'436',name:'仪器仪表修理'},{code:'439',name:'其他机械和设备修理业'}]},
+  ]},
+  { code:'D', name:'电力、热力、燃气及水生产和供应业', children:[
+    { code:'44', name:'电力、热力生产和供应业', children:[
+      { code:'441', name:'电力生产', children:[{code:'4411',name:'火力发电'},{code:'4412',name:'热电联产'},{code:'4413',name:'水力发电'},{code:'4414',name:'核力发电'},{code:'4415',name:'风力发电'},{code:'4416',name:'太阳能发电'},{code:'4419',name:'其他电力生产'}]},
+      {code:'442',name:'电力供应'},{code:'443',name:'热力生产和供应'},
+    ]},
+    { code:'45', name:'燃气生产和供应业', children:[{code:'451',name:'天然气生产和供应业'},{code:'452',name:'液化石油气生产和供应业'},{code:'459',name:'其他燃气生产和供应业'}]},
+    { code:'46', name:'水的生产和供应业', children:[{code:'461',name:'自来水生产和供应'},{code:'462',name:'污水处理及其再生利用'},{code:'469',name:'其他水的处理、利用与分配'}]},
+  ]},
+  { code:'E', name:'建筑业', children:[
+    { code:'47', name:'房屋建筑业', children:[{code:'471',name:'住宅房屋建筑'},{code:'472',name:'厂房及工业厂区建筑'},{code:'473',name:'商业及其他非住宅建筑'}]},
+    { code:'48', name:'土木工程建筑业', children:[{code:'481',name:'铁路工程建筑'},{code:'482',name:'公路工程建筑'},{code:'483',name:'市政道路工程建筑'},{code:'484',name:'港口与航运工程建筑'},{code:'485',name:'水利工程建筑'},{code:'486',name:'矿山工程建筑'},{code:'487',name:'架线和管道工程建筑'},{code:'489',name:'其他土木工程建筑'}]},
+    { code:'49', name:'建筑安装业', children:[{code:'491',name:'电气安装'},{code:'492',name:'管道和设备安装'},{code:'493',name:'建筑智能化工程施工'},{code:'499',name:'其他建筑安装'}]},
+    { code:'50', name:'建筑装饰、装修和其他建筑业', children:[{code:'501',name:'建筑装饰和装修业'},{code:'502',name:'建筑工程后期服务和墙体保温及防水作业'},{code:'509',name:'其他建筑业'}]},
+  ]},
+  { code:'F', name:'批发和零售业', children:[
+    { code:'51', name:'批发业', children:[{code:'511',name:'农、林、牧、渔产品批发'},{code:'512',name:'食品、饮料及烟草制品批发'},{code:'513',name:'纺织、服装及家庭用品批发'},{code:'514',name:'文化、体育用品及器材批发'},{code:'515',name:'医药及医疗器材批发'},{code:'516',name:'矿产品、建材及化工产品批发'},{code:'517',name:'机械设备、五金交电及电子产品批发'},{code:'518',name:'贸易经纪与代理'},{code:'519',name:'其他批发业'}]},
+    { code:'52', name:'零售业', children:[{code:'521',name:'综合零售'},{code:'522',name:'食品、饮料及烟草制品专门零售'},{code:'523',name:'纺织、服装及日用品专门零售'},{code:'524',name:'文化、体育用品及器材专门零售'},{code:'525',name:'医药及医疗器材专门零售'},{code:'526',name:'汽车、摩托车、燃料及零配件专门零售'},{code:'527',name:'家用电器及电子产品专门零售'},{code:'528',name:'五金、家具及室内装饰材料专门零售'},{code:'529',name:'其他零售业'}]},
+  ]},
+  { code:'G', name:'交通运输、仓储和邮政业', children:[
+    { code:'53', name:'铁路运输业', children:[{code:'531',name:'铁路旅客运输'},{code:'532',name:'铁路货物运输'},{code:'539',name:'其他铁路运输'}]},
+    { code:'54', name:'道路运输业', children:[{code:'541',name:'城市公共交通业'},{code:'542',name:'道路旅客运输'},{code:'543',name:'道路货物运输'}]},
+    { code:'55', name:'水上运输业', children:[{code:'551',name:'水上旅客运输'},{code:'552',name:'水上货物运输'}]},
+    { code:'56', name:'航空运输业', children:[{code:'561',name:'航空旅客运输'},{code:'562',name:'航空货物运输'},{code:'569',name:'其他航空运输'}]},
+    {code:'57',name:'管道运输业'},
+    { code:'58', name:'多式联运和运输代理业', children:[{code:'581',name:'多式联运'},{code:'582',name:'装卸搬运'},{code:'583',name:'运输代理业'},{code:'589',name:'其他运输代理业'}]},
+    { code:'59', name:'装卸搬运和仓储业', children:[{code:'591',name:'装卸搬运'},{code:'592',name:'通用仓储'},{code:'593',name:'冷链仓储'},{code:'599',name:'其他仓储业'}]},
+    { code:'60', name:'邮政业', children:[{code:'601',name:'邮政基本服务'},{code:'602',name:'快递服务'}]},
+  ]},
+  { code:'H', name:'住宿和餐饮业', children:[
+    { code:'61', name:'住宿业', children:[{code:'611',name:'旅游饭店'},{code:'612',name:'一般旅馆'},{code:'613',name:'民宿服务'},{code:'619',name:'其他住宿业'}]},
+    { code:'62', name:'餐饮业', children:[{code:'621',name:'正餐服务'},{code:'622',name:'快餐服务'},{code:'623',name:'饮料及冷饮服务'},{code:'629',name:'其他餐饮业'}]},
+  ]},
+  { code:'I', name:'信息传输、软件和信息技术服务业', children:[
+    { code:'63', name:'电信、广播电视和卫星传输服务', children:[
+      { code:'631', name:'电信', children:[{code:'6311',name:'固定电信服务'},{code:'6312',name:'移动电信服务'},{code:'6319',name:'其他电信服务'}]},
+      {code:'632',name:'广播电视传输服务'},{code:'633',name:'卫星传输服务'},
+    ]},
+    { code:'64', name:'互联网和相关服务', children:[
+      { code:'641', name:'互联网接入及相关服务', children:[{code:'6411',name:'互联网接入服务'},{code:'6419',name:'其他互联网接入及相关服务'}]},
+      {code:'642',name:'互联网信息服务'},
+      { code:'649', name:'其他互联网服务', children:[{code:'6491',name:'互联网安全服务'},{code:'6492',name:'互联网数据服务'},{code:'6499',name:'其他未列明互联网服务'}]},
+    ]},
+    { code:'65', name:'软件和信息技术服务业', children:[
+      { code:'651', name:'软件开发', children:[{code:'6511',name:'基础软件开发'},{code:'6512',name:'支撑软件开发'},{code:'6513',name:'应用软件开发'},{code:'6519',name:'其他软件开发'}]},
+      {code:'652',name:'集成电路设计'},
+      { code:'653', name:'信息系统集成和物联网技术服务', children:[{code:'6531',name:'信息系统集成服务'},{code:'6532',name:'物联网技术服务'}]},
+      { code:'654', name:'运行维护服务', children:[{code:'6541',name:'信息系统运行维护服务'},{code:'6549',name:'其他运行维护服务'}]},
+      { code:'655', name:'信息处理和存储支持服务', children:[{code:'6551',name:'信息处理服务'},{code:'6552',name:'数据存储服务'}]},
+      {code:'656',name:'信息技术咨询服务'},
+      { code:'657', name:'数字内容服务', children:[{code:'6571',name:'互联网游戏服务'},{code:'6572',name:'数字出版'},{code:'6579',name:'其他数字内容服务'}]},
+      { code:'659', name:'其他信息技术服务业', children:[{code:'6591',name:'人工智能基础层服务'},{code:'6592',name:'人工智能技术层服务'},{code:'6593',name:'人工智能应用层服务'},{code:'6599',name:'其他未列明信息技术服务业'}]},
+    ]},
+  ]},
+  { code:'J', name:'金融业', children:[
+    { code:'66', name:'货币金融服务', children:[{code:'661',name:'中央银行服务'},{code:'662',name:'货币银行服务'},{code:'663',name:'非货币银行服务'}]},
+    { code:'67', name:'资本市场服务', children:[{code:'671',name:'证券市场服务'},{code:'672',name:'公开募集基金服务'},{code:'673',name:'非公开募集基金服务'},{code:'674',name:'期货市场服务'},{code:'679',name:'其他资本市场服务'}]},
+    { code:'68', name:'保险业', children:[{code:'681',name:'人寿保险'},{code:'682',name:'财产保险'},{code:'683',name:'再保险'},{code:'684',name:'商业养老金及健康保险'},{code:'685',name:'保险辅助服务'}]},
+    { code:'69', name:'其他金融业', children:[{code:'691',name:'金融信托与管理服务'},{code:'692',name:'控股公司服务'},{code:'693',name:'非金融机构的资金融通服务'},{code:'699',name:'其他未列明金融业'}]},
+  ]},
+  { code:'K', name:'房地产业', children:[
+    { code:'70', name:'房地产业', children:[
+      { code:'701', name:'房地产开发经营', children:[{code:'7010',name:'房地产开发经营'}]},
+      { code:'702', name:'物业管理', children:[{code:'7020',name:'物业管理'}]},
+      { code:'703', name:'房地产中介服务', children:[{code:'7031',name:'房地产租赁经营'},{code:'7039',name:'其他房地产中介服务'}]},
+      {code:'709',name:'其他房地产业'},
+    ]},
+  ]},
+  { code:'L', name:'租赁和商务服务业', children:[
+    { code:'71', name:'租赁业', children:[{code:'711',name:'机械设备租赁'},{code:'712',name:'文化及日用品出租'},{code:'719',name:'其他租赁业'}]},
+    { code:'72', name:'商务服务业', children:[
+      { code:'721', name:'企业管理服务', children:[{code:'7211',name:'投资与资产管理服务'},{code:'7212',name:'创业投资服务'},{code:'7213',name:'企业总部管理服务'},{code:'7219',name:'其他企业管理服务'}]},
+      {code:'722',name:'法律服务'},
+      { code:'723', name:'咨询与调查', children:[{code:'7231',name:'会计、审计及税务服务'},{code:'7232',name:'市场调查和民意调查'},{code:'7233',name:'管理咨询'},{code:'7239',name:'其他咨询活动'}]},
+      {code:'724',name:'广告业'},
+      { code:'725', name:'人力资源服务', children:[{code:'7251',name:'职业中介活动'},{code:'7252',name:'劳动力外包服务'},{code:'7253',name:'人力资源管理咨询'},{code:'7254',name:'人才市场活动'},{code:'7259',name:'其他人力资源服务'}]},
+      {code:'726',name:'旅行社及相关服务'},{code:'727',name:'知识产权服务'},{code:'728',name:'包装服务'},{code:'729',name:'其他商务服务业'},
+    ]},
+  ]},
+  { code:'M', name:'科学研究和技术服务业', children:[
+    { code:'73', name:'研究和试验发展', children:[{code:'731',name:'自然科学研究和试验发展'},{code:'732',name:'工程和技术研究和试验发展'},{code:'733',name:'农业科学研究和试验发展'},{code:'734',name:'医学研究和试验发展'},{code:'735',name:'社会人文科学研究和试验发展'}]},
+    { code:'74', name:'专业技术服务业', children:[{code:'741',name:'气象服务'},{code:'742',name:'地震服务'},{code:'743',name:'海洋服务'},{code:'744',name:'测绘及地理信息服务'},{code:'745',name:'质检技术服务'},{code:'746',name:'环境监测及治理服务'},{code:'747',name:'工程技术与设计服务'},{code:'748',name:'工业设计服务'},{code:'749',name:'其他专业技术服务'}]},
+    { code:'75', name:'科技推广和应用服务业', children:[{code:'751',name:'技术推广服务'},{code:'752',name:'知识产权服务'},{code:'753',name:'科技中介服务'},{code:'754',name:'地质勘查业'}]},
+  ]},
+  { code:'N', name:'水利、环境和公共设施管理业', children:[
+    { code:'76', name:'水利管理业', children:[{code:'761',name:'防洪除涝设施管理'},{code:'762',name:'水资源管理'},{code:'763',name:'水文服务'},{code:'769',name:'其他水利管理业'}]},
+    { code:'77', name:'生态保护和环境治理业', children:[{code:'771',name:'自然保护区管理'},{code:'772',name:'野生动植物保护'},{code:'773',name:'造林和林场管理服务'},{code:'774',name:'水土流失防治服务'},{code:'775',name:'地质灾害防治服务'},{code:'779',name:'其他生态保护'}]},
+    { code:'78', name:'公共设施管理业', children:[{code:'781',name:'市政设施管理'},{code:'782',name:'城市绿化管理'},{code:'783',name:'游览景区管理'},{code:'789',name:'其他公共设施管理业'}]},
+    {code:'79',name:'土地管理业'},
+  ]},
+  { code:'O', name:'居民服务、修理和其他服务业', children:[
+    { code:'80', name:'居民服务业', children:[{code:'801',name:'家庭服务业'},{code:'802',name:'托儿所服务'},{code:'803',name:'养老服务业'},{code:'804',name:'残障人福利服务'},{code:'809',name:'其他居民服务业'}]},
+    { code:'81', name:'机动车、电子产品和日用产品修理业', children:[{code:'811',name:'汽车、摩托车等修理与维护'},{code:'812',name:'计算机和通讯设备修理'},{code:'813',name:'家用电器修理'},{code:'814',name:'日用产品修理'},{code:'819',name:'其他修理业'}]},
+    { code:'82', name:'其他服务业', children:[{code:'821',name:'洗染服务'},{code:'822',name:'理发及美容服务'},{code:'823',name:'洗浴和保健养生服务'},{code:'824',name:'摄影扩印服务'},{code:'825',name:'殡葬服务'},{code:'826',name:'宠物服务'},{code:'827',name:'婚姻服务'},{code:'829',name:'其他未列明居民服务'}]},
+  ]},
+  { code:'P', name:'教育', children:[
+    { code:'83', name:'教育', children:[{code:'831',name:'学前教育'},{code:'832',name:'初等教育'},{code:'833',name:'中等教育'},{code:'834',name:'高等教育'},{code:'835',name:'特殊教育'},{code:'836',name:'职业技能培训'},{code:'837',name:'教育辅助活动'},{code:'839',name:'其他教育'}]},
+  ]},
+  { code:'Q', name:'卫生和社会工作', children:[
+    { code:'84', name:'卫生', children:[
+      { code:'841', name:'医院', children:[{code:'8411',name:'综合医院'},{code:'8412',name:'中医医院'},{code:'8413',name:'中西医结合医院'},{code:'8414',name:'民族医院'},{code:'8415',name:'专科医院'},{code:'8419',name:'其他医院'}]},
+      {code:'842',name:'基层医疗卫生服务'},{code:'843',name:'专业公共卫生服务'},{code:'849',name:'其他卫生活动'},
+    ]},
+    { code:'85', name:'社会工作', children:[{code:'851',name:'有住宿的社会工作活动'},{code:'852',name:'无住宿的社会工作活动'}]},
+  ]},
+  { code:'R', name:'文化、体育和娱乐业', children:[
+    { code:'86', name:'新闻和出版业', children:[{code:'861',name:'新闻业'},{code:'862',name:'出版业'}]},
+    { code:'87', name:'广播、电视、电影和录音制作业', children:[{code:'871',name:'广播'},{code:'872',name:'电视'},{code:'873',name:'电影和影视节目制作、发行及放映'},{code:'874',name:'录音制作业'},{code:'875',name:'多媒体、游戏动漫和数字出版物出版'}]},
+    { code:'88', name:'文化艺术业', children:[{code:'881',name:'艺术表演'},{code:'882',name:'图书馆、文化馆及档案馆'},{code:'883',name:'文物及文化保护'},{code:'884',name:'文化创意和设计服务'},{code:'889',name:'其他文化艺术业'}]},
+    { code:'89', name:'体育', children:[{code:'891',name:'体育组织'},{code:'892',name:'体育场地设施管理'},{code:'893',name:'体育健身休闲活动'},{code:'899',name:'其他体育业'}]},
+    { code:'90', name:'娱乐业', children:[{code:'901',name:'游乐及主题公园'},{code:'902',name:'室内娱乐活动'},{code:'903',name:'休闲观光游览活动'},{code:'909',name:'其他娱乐业'}]},
+  ]},
+  { code:'S', name:'公共管理、社会保障和社会组织', children:[
+    {code:'91',name:'中国共产党机关'},
+    { code:'92', name:'国家机构', children:[{code:'921',name:'国家权力机关'},{code:'922',name:'国家行政机关'},{code:'923',name:'国家监察机关'},{code:'924',name:'国家司法机关'},{code:'925',name:'人民政协机关'}]},
+    {code:'93',name:'人民政协、民主党派'},
+    { code:'94', name:'社会保障', children:[{code:'941',name:'社会保障'}]},
+    { code:'95', name:'群众团体、社会团体和其他成员组织', children:[{code:'951',name:'群众团体'},{code:'952',name:'社会团体'},{code:'953',name:'基金会'},{code:'959',name:'其他会员组织'}]},
+    { code:'96', name:'基层群众自治组织及其他组织', children:[{code:'961',name:'基层群众自治组织'},{code:'969',name:'其他组织'}]},
+  ]},
+  { code:'T', name:'国际组织', children:[
+    { code:'97', name:'国际组织', children:[{code:'970',name:'国际组织'}]},
+  ]},
 ];
 
-// === 行业多选下拉组件 ===
+// === 行业四级联动多选组件（门类→大类→中类→小类）===
 function IndustryMultiSelect({ value = [], onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = React.useRef(null);
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-  const toggle = (item) => {
-    if (value.includes(item)) onChange(value.filter(v => v !== item));
-    else onChange([...value, item]);
+  const [l1, setL1] = useState('');
+  const [l2, setL2] = useState('');
+  const [l3, setL3] = useState('');
+  const [l4, setL4] = useState('');
+
+  const section   = GB_T_4754.find(s => s.code === l1);
+  const majorList = section?.children || [];
+  const major     = majorList.find(m => m.code === l2);
+  const medList   = major?.children || [];
+  const medium    = medList.find(m => m.code === l3);
+  const minorList = medium?.children || [];
+
+  const currentLabel = (() => {
+    if (l4) { const it = minorList.find(m => m.code === l4); if (it) return `${it.code} ${it.name}`; }
+    if (l3) { const it = medList.find(m => m.code === l3);   if (it) return `${it.code} ${it.name}`; }
+    if (l2) { const it = majorList.find(m => m.code === l2); if (it) return `${it.code} ${it.name}`; }
+    if (l1 && section) return `${section.code} ${section.name}`;
+    return '';
+  })();
+
+  const handleAdd = () => {
+    if (!currentLabel || value.includes(currentLabel)) return;
+    onChange([...value, currentLabel]);
   };
-  const remove = (item, e) => { e.stopPropagation(); onChange(value.filter(v => v !== item)); };
+  const remove = (item) => onChange(value.filter(v => v !== item));
+
+  const selectCls = "bg-slate-50 border border-slate-200 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed";
+
   return (
-    <div ref={ref} className="relative">
-      <div onClick={() => setOpen(o => !o)} className="w-full min-h-[48px] bg-slate-50 border border-slate-200 p-2.5 text-sm outline-none focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-50 transition-all cursor-pointer flex flex-wrap gap-1.5 items-center">
-        {value.length === 0 && <span className="text-slate-400 px-1">请选择所属行业（可多选）</span>}
-        {value.map(v => (
-          <span key={v} className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 font-medium">
-            {v}
-            <button type="button" onClick={(e) => remove(v, e)} className="text-blue-400 hover:text-blue-700 leading-none">×</button>
-          </span>
-        ))}
-        <span className="ml-auto text-slate-400 text-xs">{open ? '▲' : '▼'}</span>
+    <div className="space-y-2.5">
+      <div className="grid grid-cols-2 gap-2">
+        <select value={l1} onChange={e => { setL1(e.target.value); setL2(''); setL3(''); setL4(''); }} className={selectCls}>
+          <option value="">-- 门类 --</option>
+          {GB_T_4754.map(s => <option key={s.code} value={s.code}>{s.code} {s.name}</option>)}
+        </select>
+        <select value={l2} onChange={e => { setL2(e.target.value); setL3(''); setL4(''); }} disabled={!l1 || majorList.length === 0} className={selectCls}>
+          <option value="">-- 大类 --</option>
+          {majorList.map(m => <option key={m.code} value={m.code}>{m.code} {m.name}</option>)}
+        </select>
+        <select value={l3} onChange={e => { setL3(e.target.value); setL4(''); }} disabled={!l2 || medList.length === 0} className={selectCls}>
+          <option value="">-- 中类 --</option>
+          {medList.map(m => <option key={m.code} value={m.code}>{m.code} {m.name}</option>)}
+        </select>
+        <select value={l4} onChange={e => setL4(e.target.value)} disabled={!l3 || minorList.length === 0} className={selectCls}>
+          <option value="">-- 小类 --</option>
+          {minorList.map(m => <option key={m.code} value={m.code}>{m.code} {m.name}</option>)}
+        </select>
       </div>
-      {open && (
-        <div className="absolute z-50 top-full left-0 right-0 bg-white border border-slate-200 shadow-lg max-h-56 overflow-y-auto mt-0.5">
-          {INDUSTRY_OPTIONS.map(item => (
-            <div key={item} onClick={() => toggle(item)} className={`flex items-center gap-2 px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 transition-colors ${ value.includes(item) ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700'}`}>
-              <span className={`w-4 h-4 border flex items-center justify-center shrink-0 ${ value.includes(item) ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'}`}>{value.includes(item) && '✓'}</span>
-              {item}
-            </div>
+      <button type="button" onClick={handleAdd} disabled={!currentLabel || value.includes(currentLabel)}
+        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+        + 添加行业标签
+      </button>
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pt-0.5">
+          {value.map(v => (
+            <span key={v} className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-1 font-medium">
+              {v}
+              <button type="button" onClick={() => remove(v)} className="text-blue-400 hover:text-blue-700 text-sm leading-none">×</button>
+            </span>
           ))}
         </div>
       )}
