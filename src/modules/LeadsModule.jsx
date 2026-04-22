@@ -1613,6 +1613,70 @@ const ContactsSection = ({ contacts, onUpdateContacts, isEdit, showToast }) => {
   );
 };
 
+// === 行业分类（国家标准 GB/T 4754）===
+const INDUSTRY_OPTIONS = [
+  '农、林、牧、渔业',
+  '采矿业',
+  '制造业',
+  '电力、热力、燃气及水生产和供应业',
+  '建筑业',
+  '批发和零售业',
+  '交通运输、仓储和邮政业',
+  '住宿和餐饮业',
+  '信息传输、软件和信息技术服务业',
+  '金融业',
+  '房地产业',
+  '租赁和商务服务业',
+  '科学研究和技术服务业',
+  '水利、环境和公共设施管理业',
+  '居民服务、修理和其他服务业',
+  '教育',
+  '卫生和社会工作',
+  '文化、体育和娱乐业',
+  '公共管理、社会保障和社会组织',
+  '国际组织',
+];
+
+// === 行业多选下拉组件 ===
+function IndustryMultiSelect({ value = [], onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  const toggle = (item) => {
+    if (value.includes(item)) onChange(value.filter(v => v !== item));
+    else onChange([...value, item]);
+  };
+  const remove = (item, e) => { e.stopPropagation(); onChange(value.filter(v => v !== item)); };
+  return (
+    <div ref={ref} className="relative">
+      <div onClick={() => setOpen(o => !o)} className="w-full min-h-[48px] bg-slate-50 border border-slate-200 p-2.5 text-sm outline-none focus-within:border-blue-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-50 transition-all cursor-pointer flex flex-wrap gap-1.5 items-center">
+        {value.length === 0 && <span className="text-slate-400 px-1">请选择所属行业（可多选）</span>}
+        {value.map(v => (
+          <span key={v} className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 font-medium">
+            {v}
+            <button type="button" onClick={(e) => remove(v, e)} className="text-blue-400 hover:text-blue-700 leading-none">×</button>
+          </span>
+        ))}
+        <span className="ml-auto text-slate-400 text-xs">{open ? '▲' : '▼'}</span>
+      </div>
+      {open && (
+        <div className="absolute z-50 top-full left-0 right-0 bg-white border border-slate-200 shadow-lg max-h-56 overflow-y-auto mt-0.5">
+          {INDUSTRY_OPTIONS.map(item => (
+            <div key={item} onClick={() => toggle(item)} className={`flex items-center gap-2 px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 transition-colors ${ value.includes(item) ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700'}`}>
+              <span className={`w-4 h-4 border flex items-center justify-center shrink-0 ${ value.includes(item) ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300'}`}>{value.includes(item) && '✓'}</span>
+              {item}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // === 全新重构的单条线索录入表单 (AddLeadView) ===
 function AddLeadView({ onCancel, onSave, showToast }) {
   const [formData, setFormData] = useState({
@@ -1627,7 +1691,8 @@ function AddLeadView({ onCancel, onSave, showToast }) {
     xiaohongshu: '',
     douyin: '',
     contactNote: '',
-    companyNote: ''
+    companyNote: '',
+    industries: []
   });
 
   const filterOptions = {
@@ -1694,7 +1759,8 @@ function AddLeadView({ onCancel, onSave, showToast }) {
       wechat: formData.wechat,
       social: socialArr.join(' | ') || '暂无',
       contactNote: formData.contactNote,
-      companyNote: formData.companyNote
+      companyNote: formData.companyNote,
+      industry: formData.industries.join('、') || '未知行业',
     });
   };
 
@@ -1747,7 +1813,7 @@ function AddLeadView({ onCancel, onSave, showToast }) {
                 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-2">所属行业</label>
-                  <input type="text" value={formData.industry} onChange={e => setFormData({...formData, industry: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3.5 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-50 transition-all" placeholder="如: 互联网/制造" />
+                  <IndustryMultiSelect value={formData.industries} onChange={v => setFormData({...formData, industries: v})} />
                 </div>
                 
                 <div>
