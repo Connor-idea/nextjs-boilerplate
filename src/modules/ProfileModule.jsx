@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, MapPin, Briefcase, Clock, Users, Target, 
   ChevronLeft, Save, X, Plus, Sparkles, TrendingUp,
@@ -433,6 +433,114 @@ function SalesList({ salesList, onViewDetail }) {
   );
 }
 
+/**
+ * 漏斗图面板组件
+ * 以等腰梯形序列可视化展示线索转化各阶段及相邻阶段转化率。
+ * @param {Object} props
+ * @param {string} props.title - 面板标题
+ * @param {string} props.subtitle - 面板副标题
+ * @param {'blue'|'emerald'} [props.colorScheme='blue'] - 配色方案
+ * @param {Array<{name:string, count:number, extra?:string}>} props.stages - 各漏斗阶段数据
+ */
+function FunnelPanel({ title, subtitle, stages, colorScheme = 'blue' }) {
+  const schemes = {
+    blue: {
+      header: 'from-blue-50 to-slate-50',
+      dot: 'bg-blue-600',
+      colors: ['#BFDBFE', '#93C5FD', '#3B82F6', '#2563EB', '#1E40AF'],
+      textDark: ['text-blue-800', 'text-blue-800'],
+      textLight: ['text-white', 'text-white', 'text-white'],
+    },
+    emerald: {
+      header: 'from-emerald-50 to-slate-50',
+      dot: 'bg-emerald-500',
+      colors: ['#A7F3D0', '#6EE7B7', '#10B981', '#059669', '#047857'],
+      textDark: ['text-emerald-800', 'text-emerald-800'],
+      textLight: ['text-white', 'text-white', 'text-white'],
+    },
+  };
+  const s = schemes[colorScheme];
+
+  const getTextColor = (i) =>
+    i < s.textDark.length ? s.textDark[i] : s.textLight[i - s.textDark.length] || 'text-white';
+
+  const maxW = 100, minW = 42;
+  const step = stages.length > 1 ? (maxW - minW) / (stages.length - 1) : 0;
+
+  const overallRate =
+    stages.length >= 2 && stages[0].count > 0
+      ? ((stages[stages.length - 1].count / stages[0].count) * 100).toFixed(2)
+      : '0.00';
+
+  return (
+    <div className="border border-slate-200 overflow-hidden shadow-sm">
+      <div className={`flex items-center justify-between px-4 py-3 bg-gradient-to-r ${s.header} border-b border-slate-200`}>
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${s.dot}`} />
+          <span className="text-sm font-bold text-slate-800">{title}</span>
+        </div>
+        <span className="text-xs text-slate-400">{subtitle}</span>
+      </div>
+
+      <div className="px-6 py-5 flex flex-col items-center">
+        {stages.map((stage, i) => {
+          const widthPct = maxW - step * i;
+          const convRate =
+            i > 0 && stages[i - 1].count > 0
+              ? ((stage.count / stages[i - 1].count) * 100).toFixed(1)
+              : null;
+
+          return (
+            <div key={stage.name} className="w-full flex flex-col items-center">
+              {/* 转化率箭头 */}
+              {convRate !== null && (
+                <div className="flex items-center gap-1.5 py-1.5 text-[11px] text-slate-400">
+                  <div className="w-px h-2.5 bg-slate-300" />
+                  <span className="font-semibold text-slate-500">{convRate}% 转化</span>
+                  <div className="w-px h-2.5 bg-slate-300" />
+                </div>
+              )}
+              {/* 梯形块 */}
+              <div
+                style={{
+                  width: `${widthPct}%`,
+                  background: s.colors[Math.min(i, s.colors.length - 1)],
+                  clipPath:
+                    i < stages.length - 1
+                      ? 'polygon(0% 0%, 100% 0%, 93% 100%, 7% 100%)'
+                      : 'none',
+                  padding: '9px 6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '2px',
+                  transition: 'width 0.4s ease',
+                }}
+              >
+                <span className={`text-[11px] font-semibold ${getTextColor(i)}`}>{stage.name}</span>
+                <span className={`text-sm font-black ${getTextColor(i)}`}>
+                  {typeof stage.count === 'number' ? stage.count.toLocaleString() : stage.count}
+                </span>
+                {stage.extra && (
+                  <span className={`text-[10px] ${getTextColor(i)} opacity-80`}>{stage.extra}</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* 总体转化率 */}
+        <div className="mt-4 pt-3 border-t border-slate-100 w-full flex items-center justify-between text-xs">
+          <span className="text-slate-500">总体转化率（线索→成交）</span>
+          <span className={`font-bold ${colorScheme === 'emerald' ? 'text-emerald-600' : 'text-blue-600'}`}>
+            {overallRate}%
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SalesDetail({ user, onBack, onSave }) {
   const [formData, setFormData] = useState({ ...user });
   const [activeTab, setActiveTab] = useState('metrics'); 
@@ -445,14 +553,9 @@ function SalesDetail({ user, onBack, onSave }) {
   const [modalTargetData, setModalTargetData] = useState({ ...formData.targets });
   
   // 漏斗多维筛选状态
-  const [funnelSource, setFunnelSource] = useState('全部');
+  const [funnelLeadType, setFunnelLeadType] = useState('全部');
+  const [funnelCustType, setFunnelCustType] = useState('全部');
   const [funnelIndustry, setFunnelIndustry] = useState('全部');
-
-  // Sankey图状态
-  const sankeyContainerRef = useRef(null);
-  const sankeyMonthlyRef = useRef(null);
-  const [selectedSources, setSelectedSources] = useState([0, 1, 2, 6]);
-  const [selectedIndustry, setSelectedIndustry] = useState('全部');
 
   // 排序与筛选状态
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
@@ -473,7 +576,8 @@ function SalesDetail({ user, onBack, onSave }) {
         setShowTargetModal(false);
         setNewTag('');
         setNewInd('');
-        setFunnelSource('全部');
+        setFunnelLeadType('全部');
+        setFunnelCustType('全部');
         setFunnelIndustry('全部');
         setSortConfig({ key: null, direction: 'asc' });
         setAbnormalFilter('全部');
@@ -483,201 +587,10 @@ function SalesDetail({ user, onBack, onSave }) {
     }
   }, [user]);
 
-  // Plotly Sankey图初始化
-  const SANKEY_BASE = {
-    cumulative: {
-      links: [
-        { source: 0, target: 3, value: 6560 },
-        { source: 0, target: 4, value: 1040 },
-        { source: 0, target: 5, value: 400 },
-        { source: 1, target: 3, value: 8500 },
-        { source: 1, target: 4, value: 1000 },
-        { source: 1, target: 5, value: 500 },
-        { source: 2, target: 3, value: 1560 },
-        { source: 2, target: 4, value: 300 },
-        { source: 2, target: 5, value: 140 },
-        { source: 4, target: 7, value: 351 },
-        { source: 4, target: 8, value: 1989 },
-        { source: 6, target: 7, value: 216 },
-        { source: 6, target: 8, value: 984 }
-      ],
-      avgDeal: 88
-    },
-    monthly: {
-      links: [
-        { source: 0, target: 3, value: 520 },
-        { source: 0, target: 4, value: 88 },
-        { source: 0, target: 5, value: 32 },
-        { source: 1, target: 3, value: 680 },
-        { source: 1, target: 4, value: 78 },
-        { source: 1, target: 5, value: 42 },
-        { source: 2, target: 3, value: 128 },
-        { source: 2, target: 4, value: 24 },
-        { source: 2, target: 5, value: 12 },
-        { source: 4, target: 7, value: 32 },
-        { source: 4, target: 8, value: 158 },
-        { source: 6, target: 7, value: 18 },
-        { source: 6, target: 8, value: 82 }
-      ],
-      avgDeal: 88
-    }
-  };
-
-  const INDUSTRY_SCALE = {
-    '全部': 1.0,
-    '互联网': 0.42,
-    '高新制造': 0.31,
-    '金融': 0.16,
-    '零售': 0.11
-  };
-
-  const INDUSTRY_LIST = ['全部', '互联网', '高新制造', '金融', '零售'];
-
-  const renderSankey = (containerRef, period, activeSources, industry) => {
-    if (!containerRef.current) return;
-    if (typeof window === 'undefined' || !window.Plotly) {
-      console.warn('Plotly not loaded yet');
-      return;
-    }
-
-    try {
-      const scale = INDUSTRY_SCALE[industry] ?? 1.0;
-      const base = SANKEY_BASE[period];
-      const avgDealAmount = base.avgDeal;
-
-      const rawNodes = [
-        { id: 0, name: "销售线索", layer: 1, x: 0.01, y: 0.1, color: "#3B82F6" },
-        { id: 1, name: "公司线索", layer: 1, x: 0.01, y: 0.5, color: "#60A5FA" },
-        { id: 2, name: "再分配线索", layer: 1, x: 0.01, y: 0.9, color: "#93C5FD" },
-        { id: 3, name: "无效线索", layer: 2, x: 0.5, y: 0.1, color: "#CBD5E1" },
-        { id: 4, name: "线索转客户", layer: 2, x: 0.5, y: 0.4, color: "#2563EB" },
-        { id: 5, name: "退回线索", layer: 2, x: 0.5, y: 0.6, color: "#E2E8F0" },
-        { id: 6, name: "销售自有客户", layer: 2, x: 0.5, y: 0.9, color: "#0EA5E9" },
-        { id: 7, name: "成交合同", layer: 3, x: 0.99, y: 0.3, color: "#1E3A8A" },
-        { id: 8, name: "流失客户", layer: 3, x: 0.99, y: 0.7, color: "#F1F5F9" }
-      ];
-      const rawLinks = base.links.map(l => ({ ...l, value: Math.max(1, Math.round(l.value * scale)) }));
-
-      const rawOutTotals = {};
-      const rawConvRates = {};
-      rawLinks.forEach(l => { rawOutTotals[l.source] = (rawOutTotals[l.source] || 0) + l.value; });
-      rawLinks.forEach(l => {
-        if (l.target === 4 || l.target === 7) {
-          rawConvRates[l.source] = ((l.value / rawOutTotals[l.source]) * 100).toFixed(1) + '%';
-        }
-      });
-
-      const activeIds = new Set([3, 4, 5, 7, 8]);
-      activeSources.forEach(id => activeIds.add(id));
-      const activeLinks = rawLinks.filter(l => activeIds.has(l.source) && activeIds.has(l.target));
-
-      const viewOutTotals = {};
-      const viewInTotals = {};
-      activeLinks.forEach(l => {
-        viewOutTotals[l.source] = (viewOutTotals[l.source] || 0) + l.value;
-        viewInTotals[l.target] = (viewInTotals[l.target] || 0) + l.value;
-      });
-
-      const activeNodes = rawNodes.filter(n => {
-        if ([0, 1, 2, 6].includes(n.id)) return activeIds.has(n.id);
-        return (viewInTotals[n.id] || 0) > 0 || (viewOutTotals[n.id] || 0) > 0;
-      });
-
-      const idToIndex = {};
-      activeNodes.forEach((n, index) => { idToIndex[n.id] = index; });
-
-      const pLabels = [], pColors = [], pX = [], pY = [];
-
-      activeNodes.forEach(n => {
-        let currentVol = Math.max(viewOutTotals[n.id] || 0, viewInTotals[n.id] || 0);
-        let labelText = `<b>${n.name}</b><br><span style='font-size:11px;color:#475569'>视图量: ${currentVol.toLocaleString()}</span>`;
-        if (rawConvRates[n.id]) {
-          let rateName = n.layer === 1 ? '转客率' : '成交率';
-          let rateColor = n.layer === 1 ? '#2563EB' : '#1E3A8A';
-          labelText += `<br><span style='font-size:12px; font-weight:bold; color:${rateColor}'>${rateName}: ${rawConvRates[n.id]}</span>`;
-        }
-        if (n.id === 7) {
-          const dealCount = viewInTotals[7] || 0;
-          const lostCount = viewInTotals[8] || 0;
-          const totalClients = dealCount + lostCount;
-          const convRate = totalClients > 0 ? ((dealCount / totalClients) * 100).toFixed(1) : '0.0';
-          const dealAmt = (dealCount * avgDealAmount).toLocaleString();
-          labelText += `<br><span style='font-size:11px; font-weight:bold; color:#93C5FD'>成交额: ${dealAmt}万</span>`;
-          labelText += `<br><span style='font-size:12px; font-weight:bold; color:#60A5FA'>转化率: ${convRate}%</span>`;
-        }
-        pLabels.push(labelText);
-        pColors.push(n.color);
-        pX.push(n.x);
-        pY.push(n.y);
-      });
-
-      const pSources = [], pTargets = [], pValues = [], pLinkColors = [], pCustomData = [];
-      activeLinks.forEach(l => {
-        pSources.push(idToIndex[l.source]);
-        pTargets.push(idToIndex[l.target]);
-        pValues.push(l.value);
-        pCustomData.push(((l.value / rawOutTotals[l.source]) * 100).toFixed(1));
-        if (l.target === 3 || l.target === 5 || l.target === 8) {
-          pLinkColors.push("rgba(203, 213, 225, 0.4)");
-        } else {
-          const sc = rawNodes.find(n => n.id === l.source).color;
-          const r = parseInt(sc.slice(1, 3), 16);
-          const g = parseInt(sc.slice(3, 5), 16);
-          const b = parseInt(sc.slice(5, 7), 16);
-          pLinkColors.push(`rgba(${r}, ${g}, ${b}, 0.45)`);
-        }
-      });
-
-      const data = [{
-        type: "sankey",
-        orientation: "h",
-        node: { pad: 20, thickness: 28, line: { width: 0 }, label: pLabels, x: pX, y: pY, color: pColors },
-        link: {
-          source: pSources, target: pTargets, value: pValues, color: pLinkColors,
-          customdata: pCustomData,
-          hovertemplate: "%{source.label} -> %{target.label}<br>流量: <b>%{value}</b><br>占比: <b>%{customdata}%</b><extra></extra>"
-        }
-      }];
-
-      const layout = {
-        font: { size: 11, family: "PingFang SC, Microsoft YaHei, sans-serif" },
-        margin: { l: 10, r: 10, t: 10, b: 10 },
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        hoverlabel: { font: { family: "PingFang SC" } }
-      };
-
-      window.Plotly.purge(containerRef.current);
-      window.Plotly.newPlot(containerRef.current, data, layout, { responsive: true, displayModeBar: false });
-    } catch (error) {
-      console.error('Sankey render error:', error);
-    }
-  };
-
-  useEffect(() => {
-    const doRender = () => {
-      renderSankey(sankeyContainerRef, 'cumulative', selectedSources, selectedIndustry);
-      renderSankey(sankeyMonthlyRef, 'monthly', selectedSources, selectedIndustry);
-    };
-    if (typeof window !== 'undefined' && window.Plotly) {
-      doRender();
-    } else {
-      const timer = setTimeout(() => {
-        if (typeof window !== 'undefined' && window.Plotly) doRender();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [selectedSources, selectedIndustry]);
-
-  const toggleSourceFilter = (nodeId) => {
-    setSelectedSources(prev => 
-      prev.includes(nodeId) ? prev.filter(id => id !== nodeId) : [...prev, nodeId]
-    );
-  };
-
-  const selectAllSources = () => {
-    setSelectedSources([0, 1, 2, 6]);
-  };
+  /** 各漏斗筛选维度的数量乘数 */
+  const FUNNEL_LEAD_TYPE_SCALE = { '全部': 1.0, '销售线索': 0.45, '公司线索': 0.38, 'AI推客': 0.35, '再分配线索': 0.17 };
+  const FUNNEL_CUST_TYPE_SCALE = { '全部': 1.0, '新客户': 0.65, '复购客户': 0.35 };
+  const FUNNEL_INDUSTRY_SCALE  = { '全部': 1.0, '互联网': 0.42, '高新制造': 0.31, '金融': 0.16, '零售': 0.11 };
 
   const toggleEdit = (sectionKey) => {
     setEditStates(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
@@ -809,16 +722,35 @@ function SalesDetail({ user, onBack, onSave }) {
 
   const cumulativeFunnel = formData.funnelData['累计'];
   const baseFunnel = formData.funnelData['当月'];
-  let funnelMultiplier = 1;
-  if (funnelSource === 'AI推客') funnelMultiplier *= 0.35;
-  if (funnelIndustry !== '全部') funnelMultiplier *= (1 / (formData.industries.length || 1));
-  
-  const monthlyFunnel = {
-    leads: Math.max(1, Math.round(baseFunnel.leads * funnelMultiplier)),
-    customers: Math.max(1, Math.round(baseFunnel.customers * funnelMultiplier)),
-    closed: Math.max(0, Math.round(baseFunnel.closed * funnelMultiplier)),
-    amount: (parseFloat(baseFunnel.amount) * funnelMultiplier).toFixed(1) + '万'
+
+  // 三维筛选乘数（独立相乘，非全部时才缩放）
+  const funnelMulti =
+    (funnelLeadType !== '全部' ? FUNNEL_LEAD_TYPE_SCALE[funnelLeadType] ?? 1 : 1) *
+    (funnelCustType !== '全部' ? FUNNEL_CUST_TYPE_SCALE[funnelCustType] ?? 1 : 1) *
+    (funnelIndustry !== '全部' ? FUNNEL_INDUSTRY_SCALE[funnelIndustry] ?? 1 : 1);
+
+  /**
+   * 将原始漏斗数据乘以筛选乘数，生成四阶段漏斗 stage 数组。
+   * 阶段：线索获取 → 有效接触 → 转化客户 → 签约成交
+   * @param {{ leads:number, customers:number, closed:number, amount:string }} data
+   * @param {number} multi - 筛选乘数（1 = 不缩放）
+   */
+  const buildFunnelStages = (data, multi) => {
+    const leads     = Math.max(1, Math.round(data.leads     * multi));
+    const contacted = Math.max(1, Math.round(data.leads     * multi * 0.72));
+    const customers = Math.max(1, Math.round(data.customers * multi));
+    const closed    = Math.max(0, Math.round(data.closed    * multi));
+    const amount    = (parseFloat(data.amount) * multi).toFixed(1) + '万';
+    return [
+      { name: '线索获取', count: leads },
+      { name: '有效接触', count: contacted },
+      { name: '转化客户', count: customers },
+      { name: '签约成交', count: closed, extra: amount },
+    ];
   };
+
+  const cumulativeFunnelStages = buildFunnelStages(cumulativeFunnel, funnelMulti);
+  const monthlyFunnelStages    = buildFunnelStages(baseFunnel, funnelMulti);
 
   return (
     <div className="bg-white min-h-[85vh] md:rounded-2xl border border-slate-200 shadow-sm animate-in slide-in-from-right-8 duration-300 relative">
@@ -907,91 +839,99 @@ function SalesDetail({ user, onBack, onSave }) {
                 </div>
               )}
 
-              {/* 桑基图：线索来源 → 客户来源 */}
+              {/* 漏斗图：线索月客户流向分析 */}
               <div className="bg-white border border-slate-200 p-6 shadow-sm mt-10 border-t border-slate-100 pt-8">
                 <h3 className="text-base font-bold text-slate-800 flex items-center shrink-0 mb-4">
-                  <Filter className="w-5 h-5 mr-2 text-blue-500"/>线索与客户流向分析 <span className="text-xs font-normal text-slate-500 ml-2">(桑基图：展示线索来源 → 客户获取渠道)</span>
+                  <Filter className="w-5 h-5 mr-2 text-blue-500" />
+                  线索月客户流向分析
+                  <span className="text-xs font-normal text-slate-500 ml-2">漏斗转化 · 多维筛选</span>
                 </h3>
 
-                {/* 筛选区：业务通道 + 行业 */}
-                <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg mb-5 space-y-3">
+                {/* 三行筛选器：线索类型 / 客户类型 / 行业 */}
+                <div className="bg-slate-50 border border-slate-200 p-4 mb-6 space-y-3">
+                  {/* 线索类型 */}
                   <div className="flex items-center gap-3 flex-wrap">
-                    <span className="text-sm font-bold text-slate-700 shrink-0">业务通道：</span>
+                    <span className="text-xs font-bold text-slate-600 shrink-0 w-14">线索类型</span>
                     <div className="flex gap-2 flex-wrap">
-                      {[
-                        { id: 0, name: '销售线索' },
-                        { id: 1, name: '公司线索' },
-                        { id: 2, name: '再分配线索' },
-                        { id: 6, name: '销售自有客户' }
-                      ].map(source => (
-                        <label key={source.id} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 px-3 rounded border border-slate-200 bg-white/50">
-                          <input 
-                            type="checkbox" 
-                            checked={selectedSources.includes(source.id)}
-                            onChange={() => toggleSourceFilter(source.id)}
-                            className="w-4 h-4"
-                          />
-                          <span className="text-sm font-medium text-slate-700">{source.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                    <button 
-                      onClick={selectAllSources}
-                      className="text-sm font-medium text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded ml-auto"
-                    >
-                      全选
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="text-sm font-bold text-slate-700 shrink-0">行业筛选：</span>
-                    <div className="flex gap-2 flex-wrap">
-                      {INDUSTRY_LIST.map(ind => (
+                      {['全部', '销售线索', '公司线索', 'AI推客', '再分配线索'].map(opt => (
                         <button
-                          key={ind}
-                          onClick={() => setSelectedIndustry(ind)}
-                          className={`text-sm px-3 py-1 rounded border font-medium transition-colors ${
-                            selectedIndustry === ind
+                          key={opt}
+                          onClick={() => setFunnelLeadType(opt)}
+                          className={`text-xs px-3 py-1 border font-medium transition-colors ${
+                            funnelLeadType === opt
                               ? 'bg-blue-600 text-white border-blue-600'
                               : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'
                           }`}
                         >
-                          {ind}
+                          {opt}
                         </button>
                       ))}
                     </div>
                   </div>
+
+                  {/* 客户类型 */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-xs font-bold text-slate-600 shrink-0 w-14">客户类型</span>
+                    <div className="flex gap-2 flex-wrap">
+                      {['全部', '新客户', '复购客户'].map(opt => (
+                        <button
+                          key={opt}
+                          onClick={() => setFunnelCustType(opt)}
+                          className={`text-xs px-3 py-1 border font-medium transition-colors ${
+                            funnelCustType === opt
+                              ? 'bg-emerald-600 text-white border-emerald-600'
+                              : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300 hover:text-emerald-600'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 行业 */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-xs font-bold text-slate-600 shrink-0 w-14">所属行业</span>
+                    <div className="flex gap-2 flex-wrap">
+                      {['全部', '互联网', '高新制造', '金融', '零售'].map(opt => (
+                        <button
+                          key={opt}
+                          onClick={() => setFunnelIndustry(opt)}
+                          className={`text-xs px-3 py-1 border font-medium transition-colors ${
+                            funnelIndustry === opt
+                              ? 'bg-violet-600 text-white border-violet-600'
+                              : 'bg-white text-slate-600 border-slate-200 hover:border-violet-300 hover:text-violet-600'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                    {(funnelLeadType !== '全部' || funnelCustType !== '全部' || funnelIndustry !== '全部') && (
+                      <button
+                        onClick={() => { setFunnelLeadType('全部'); setFunnelCustType('全部'); setFunnelIndustry('全部'); }}
+                        className="ml-auto text-xs text-slate-400 hover:text-slate-700 underline"
+                      >
+                        重置筛选
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                {/* 双列卡片 */}
+                {/* 双列漏斗面板 */}
                 <div className="grid grid-cols-2 gap-5">
-                  {/* 累计转化分析 */}
-                  <div className="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-                    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-50 to-slate-50 border-b border-slate-200">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-600" />
-                        <span className="text-sm font-bold text-slate-800">累计转化分析</span>
-                      </div>
-                      <span className="text-xs text-slate-400">历史全量数据</span>
-                    </div>
-                    <div 
-                      ref={sankeyContainerRef}
-                      style={{ width: '100%', height: '480px', backgroundColor: 'white' }}
-                    />
-                  </div>
-                  {/* 当月转化分析 */}
-                  <div className="border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-                    <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-emerald-50 to-slate-50 border-b border-slate-200">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                        <span className="text-sm font-bold text-slate-800">当月转化分析</span>
-                      </div>
-                      <span className="text-xs text-slate-400">本月实时数据</span>
-                    </div>
-                    <div 
-                      ref={sankeyMonthlyRef}
-                      style={{ width: '100%', height: '480px', backgroundColor: 'white' }}
-                    />
-                  </div>
+                  <FunnelPanel
+                    title="累计转化分析"
+                    subtitle="历史全量数据"
+                    colorScheme="blue"
+                    stages={cumulativeFunnelStages}
+                  />
+                  <FunnelPanel
+                    title="当月转化分析"
+                    subtitle="本月实时数据"
+                    colorScheme="emerald"
+                    stages={monthlyFunnelStages}
+                  />
                 </div>
               </div>
 
