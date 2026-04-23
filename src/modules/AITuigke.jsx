@@ -48,6 +48,15 @@ const initialLeads = [
 ];
 
 // --- 全局 Toast 提示组件 ---
+// --- 模块内部 Toast：自管定时自动关闭，不依赖父组件 ---
+/**
+ * 模块内部 Toast 组件（独立自管）
+ * 3秐后自动回调 onClose，支持 success/error/loading 三种状态。
+ * @param {Object} props
+ * @param {string} props.message - 提示内容
+ * @param {'success'|'error'|'loading'} [props.type='success']
+ * @param {Function} props.onClose - 定时器到期的回调
+ */
 const Toast = ({ message, type = 'success', onClose }) => {
   useEffect(() => {
     if (message) {
@@ -67,7 +76,16 @@ const Toast = ({ message, type = 'success', onClose }) => {
   );
 };
 
-// --- 通用组件 ---
+// --- 通用展示组件 ---
+/**
+ * 带来源链接的单个信息展示单元
+ * @param {Object} props
+ * @param {string} props.label - 字段名
+ * @param {string} props.value - 字段内容
+ * @param {string} [props.source] - 来源标签（悬浮显示）
+ * @param {string} [props.link='#'] - 来源链接 URL
+ * @param {number} [props.colSpan=1] - 占列数
+ */
 const InfoItem = ({ label, value, source, link = "#", colSpan = 1 }) => (
   <div className={`relative group flex flex-col p-3 hover:bg-slate-50 transition-colors ${colSpan > 1 ? `col-span-${colSpan}` : ''}`}>
     <span className="text-xs text-slate-500 mb-1">{label}</span>
@@ -82,6 +100,13 @@ const InfoItem = ({ label, value, source, link = "#", colSpan = 1 }) => (
   </div>
 );
 
+/**
+ * AI 信息展示卡片，带渐变背景和图标装饰
+ * @param {Object} props
+ * @param {string} props.title - 卡片标题
+ * @param {React.ReactNode} props.children - 卡片内容
+ * @param {React.ElementType} [props.icon=Sparkles] - 标题图标组件
+ */
 const AIBlock = ({ title, children, icon: Icon = Sparkles }) => (
   <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 border border-indigo-100 relative overflow-hidden">
     <div className="absolute top-0 right-0 opacity-5 pointer-events-none">
@@ -1260,6 +1285,13 @@ const ActionSection = ({ lead, showToast, onSaveDraft, onOpenDirectory, onSubmit
 };
 
 // 主应用入口
+/**
+ * AITuigke.jsx
+ * AI 推客模块
+ * 提供逐条线索跟进流程，包含安排话术、公司信息展示、联系人管理、跟进历史及提交操作等功能。
+ * 内部自管 Toast 状态，不依赖父组件 showToast 回调。
+ */
+
 export default function AITuigkeApp({ userRole = 'manager' }) {
   const [leads, setLeads] = useState(initialLeads);
   const [currentLeadId, setCurrentLeadId] = useState(initialLeads[0].id);
@@ -1273,6 +1305,10 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
     return () => clearTimeout(timer);
   }, []);
 
+  /** 显示 Toast 提示
+   * @param {string} msg - 提示内容
+   * @param {'success'|'error'|'loading'} [type='success'] - 提示类型
+   */
   const showToast = useCallback((msg, type = 'success') => {
     setToastMessage(msg);
     setToastType(type);
@@ -1280,10 +1316,17 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
   
   const currentLead = useMemo(() => leads.find(l => l.id === currentLeadId), [leads, currentLeadId]);
 
+  /** 将指定线索标记为草稿状态
+   * @param {string} id - 线索 ID
+   */
   const handleSaveDraft = useCallback((id) => {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status: 'draft' } : l));
   }, []);
 
+  /** 向指定线索添加一条跟进历史记录
+   * @param {string} leadId - 线索 ID
+   * @param {Object} record - 历史记录对象
+   */
   const handleAddHistoryRecord = useCallback((leadId, record) => {
     setLeads(prev => prev.map(l => {
       if (l.id === leadId) {
@@ -1293,6 +1336,11 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
     }));
   }, []);
 
+  /** 向指定线索添加公司备注
+   * @param {string} leadId - 线索 ID
+   * @param {string} text - 备注内容
+   * @param {string} dateStr - 备注日期字符串
+   */
   const handleAddCompanyNote = useCallback((leadId, text, dateStr) => {
     setLeads(prev => prev.map(l => {
       if (l.id === leadId) {
@@ -1302,6 +1350,9 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
     }));
   }, []);
 
+  /** 切换当前线索，带加载动画
+   * @param {string} id - 目标线索 ID
+   */
   const handleSelectLeadWithLoading = useCallback((id) => {
     setIsDirectoryOpen(false);
     if (id === currentLeadId) return;
@@ -1313,6 +1364,10 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
     }, 600);
   }, [currentLeadId]);
 
+  /**
+   * 处理线索提交成功：标记当前线索已完成，自动迟延切换到下一条待跟进线索
+   * @param {'submit'|'invalid'|'return'} type - 提交类型
+   */
   const handleSubmitSuccess = useCallback((type) => {
     let msg = '🎉 提交成功，正在获取下一条线索...';
     if (type === 'invalid') msg = '✅ 已标记无效，正在获取下一条线索...';

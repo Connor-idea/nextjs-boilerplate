@@ -1,3 +1,9 @@
+/**
+ * LeadsModule.jsx
+ * 销售线索管理主模块
+ * 包含线索列表、详情、新增、批量导入/OCR、数据清洗、手动/AI 分配等完整功能。
+ */
+
 import React, { useState, useEffect, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { 
@@ -7,28 +13,18 @@ import {
   UserCheck, Briefcase, User, CheckSquare, Square, CheckCircle2, Link as LinkIcon, 
   Building2, RefreshCw, PlayCircle, ShieldAlert, History, Copy, MapPin, Undo2,
   Camera, Loader2, Image as ImageIcon, ScanLine, CalendarClock, Settings2, ListChecks,
-  TrendingUp, BatteryMedium, BatteryFull, BatteryLow, ShieldCheck, Wand2, Database, AlertTriangle, Filter
+  TrendingUp, ShieldCheck, Wand2, Database, AlertTriangle, Filter
 } from 'lucide-react';
+import { MOCK_REP_PERFORMANCE, teamMembers } from '../constants/salesData';
 
-// === 模拟企业数据库 ===
+/** 用于公司名联想输入的模拟企业名称库 */
 const MOCK_COMPANY_DB = [
   "北京字节跳动科技有限公司", "上海腾讯企点科技有限公司", "深圳大疆创新科技有限公司",
   "杭州阿里巴巴集团有限公司", "广州小鹏汽车科技有限公司", "北京百度网讯科技有限公司",
   "华为技术有限公司", "小米科技有限责任公司", "网易（杭州）网络有限公司"
 ];
 
-// === 模拟销售人员业绩负荷数据库 (扩充至8人) ===
-const MOCK_REP_PERFORMANCE = {
-  '张三': { intent: 32, label: '饱和', icon: BatteryFull, color: 'text-red-600 bg-red-50 border-red-200' },
-  '李四': { intent: 5, label: '空闲', icon: BatteryLow, color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '王五': { intent: 18, label: '正常', icon: BatteryMedium, color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  '赵六': { intent: 8, label: '空闲', icon: BatteryLow, color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '刘洋': { intent: 28, label: '偏高', icon: BatteryMedium, color: 'text-orange-700 bg-orange-50 border-orange-200' },
-  '孙琦': { intent: 2, label: '空闲', icon: BatteryLow, color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '周七': { intent: 15, label: '正常', icon: BatteryMedium, color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  '吴八': { intent: 22, label: '偏高', icon: BatteryMedium, color: 'text-orange-700 bg-orange-50 border-orange-200' }
-};
-
+/** 线索状态对应的 Tailwind 颜色样式映射 */
 const statusColors = { 
   '新线索': 'bg-blue-50 text-blue-700 border-blue-100', 
   '退回待分配': 'bg-orange-50 text-orange-700 border-orange-100', 
@@ -37,8 +33,6 @@ const statusColors = {
   '失效线索': 'bg-slate-100 text-slate-600 border-slate-200',
   '异常线索': 'bg-rose-50 text-rose-700 border-rose-100'
 };
-
-const teamMembers = Object.keys(MOCK_REP_PERFORMANCE);
 
 const defaultMockContacts = [
   {
@@ -72,19 +66,6 @@ const EmptyState = ({ text }) => (
     <p className="font-bold">{text}</p>
   </div>
 );
-
-// === 全局 Toast 组件 ===
-const Toast = ({ message, type = 'success' }) => {
-  if (!message) return null;
-  return (
-    <div className="fixed top-8 left-1/2 transform -translate-x-1/2 z-[300] animate-in slide-in-from-top-4 fade-in duration-300">
-      <div className={`flex items-center gap-3 px-6 py-3.5 shadow-lg border font-medium text-sm ${type === 'success' ? 'bg-white text-emerald-700 border-emerald-100' : 'bg-white text-red-700 border-red-100'}`}>
-        {type === 'success' ? <CheckCircle2 size={18} className="text-emerald-500" /> : <AlertCircle size={18} className="text-red-500" />}
-        {message}
-      </div>
-    </div>
-  );
-};
 
 // === 辅助组件：公司联想输入 ===
 function CompanyAutocomplete({ value, onChange, className, placeholder }) {
@@ -138,7 +119,10 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     { id: 101, date: '2024-04-07 09:00:00', type: '智能负载均衡', total: 17, details: '李四(10), 孙琦(5), 王五(2), 张三(0)', status: '成功', assignments: [] }
   ]);
   
-  // Calculate pending cleanup items (duplicates + invalids)
+  /** 计算待清洗项数（播单重复 + 无效电话）
+   * @param {Array<Object>} leadList - 线索列表
+   * @returns {number} 需处理的项数
+   */
   const calculatePendingCount = (leadList) => {
     const grouped = leadList.reduce((acc, curr) => {
       const key = `${curr.company}_${curr.name}`;
@@ -157,13 +141,20 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     return duplicateCount + invalidCount;
   };
   
+  /** 跳转至自动分配视图 */
   const handleAutoAssignClick = () => setCurrentView('autoAssign');
 
-  // Initialize pending cleanup count on load
+  // 初始化时计算待清洗数
   useEffect(() => {
     setPendingCleanupCount(calculatePendingCount(leads));
   }, []);
 
+  /**
+   * 解析分配原因输入，返回标准化的原因对象
+   * 支持字符串或对象两种输入格式
+   * @param {string|{category:string,note:string}|null} reasonInput
+   * @returns {{ category: string, note: string, text: string }}
+   */
   const parseReasonPayload = (reasonInput) => {
     if (!reasonInput) {
       return { category: '主管业务调整', note: '', text: '主管业务调整' };
@@ -178,6 +169,10 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     return { category, note, text };
   };
 
+  /**
+   * 发送线索改派系统通知（分别对原归属和新归属发送）
+   * @param {{ leadName: string, company: string, fromOwner: string, toOwner: string, reason: any }} params
+   */
   const notifyLeadReassigned = ({ leadName, company, fromOwner, toOwner, reason }) => {
     const parsedReason = parseReasonPayload(reason);
     const reasonText = parsedReason.text;
@@ -195,6 +190,10 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     });
   };
 
+  /**
+   * 手动录入新线索，自动创建默认联系人并更新清洗计数
+   * @param {Object} newLeadData - 表单提交的线索数据
+   */
   const handleAddLead = (newLeadData) => {
     const defaultContact = {
        id: Date.now() + 1, name: newLeadData.name, position: newLeadData.position, companyName: newLeadData.companyName,
@@ -217,6 +216,10 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     showToast('✅ 线索已成功录入');
   };
 
+  /**
+   * 批量 OCR 名片录入：将解析后的名片数据格式化并添加到线索列表
+   * @param {Array<Object>} parsedLeads - OCR 解析结果数组
+   */
   const handleBatchOcrAddLeads = (parsedLeads) => {
     const formatted = parsedLeads.map((l, index) => {
       const defaultContact = {
@@ -237,6 +240,10 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     showToast(`✅ 成功批量录入 ${formatted.length} 张名片线索`);
   };
 
+  /**
+   * 将指定线索退回公共线索池（清空归属、状态改为“退回待分配”）
+   * @param {number} id - 线索 ID
+   */
   const handleReturnToPool = (id) => {
     const updatedLeads = leads.map(l => l.id === id ? { ...l, owner: '未分配', status: '退回待分配', isSelfAdded: false } : l);
     setLeads(updatedLeads);
@@ -244,10 +251,21 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     showToast('🔄 线索已退回到线索池');
   };
 
+  /**
+   * 更新单条线索并展示成功提示
+   * @param {Object} updated - 已修改的线索对象
+   */
   const handleUpdateLead = (updated) => { 
     setLeads(leads.map(l => l.id === updated.id ? updated : l)); setSelectedLead(updated); showToast('✅ 信息更新成功');
   };
 
+  /**
+   * 统一分配入口：支持按人分配（数组形式）和批量分配给同一人（ID列表）两种方式。
+   * 自动记录分配日志并触发改派通知。
+   * @param {Array<{id:number,owner:string}>|Array<number>} idsOrAssignments - AI分配对象数组或线索ID数组
+   * @param {string|null} ownerOrNull - 批量分配时的目标归属人
+   * @param {{ category: string, note: string }} [reason] - 分配原因
+   */
   const handleAssign = (idsOrAssignments, ownerOrNull, reason = { category: '主管业务调整', note: '' }) => {
     let assignedData = [];
     const reassignNotices = [];
@@ -325,6 +343,10 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     }
   };
 
+  /**
+   * 撤销某次分配记录，将涉及线索恢复为未分配状态
+   * @param {number} logId - 分配日志 ID
+   */
   const handleRevokeAssign = (logId) => {
     const log = assignLogs.find(l => l.id === logId);
     if (!log || log.status === '已撤回') return;
@@ -335,6 +357,10 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     showToast('✅ 派发已成功撤回，线索已返回线索池');
   };
 
+  /**
+   * 模拟自动分配策略执行：根据当前配置将未分配线索按循环方式分配给已选庞人。
+   * 智能模式下根据微载动态调整每属人上限。
+   */
   const handleSimulateAutoAssign = () => {
     const unassignedLeads = leads.filter(l => l.owner === '未分配' && l.status !== '失效线索' && l.status !== '异常线索');
     if (unassignedLeads.length === 0) return showToast('❌ 当前线索池中没有可分配的有效线索', 'error');
@@ -383,12 +409,20 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     }
   };
 
+  /**
+   * 批量删除指定线索
+   * @param {Array<number>} ids - 要删除的线索 ID 数组
+   */
   const handleBatchDelete = (ids) => {
     setLeads(leads.filter(l => !ids.includes(l.id)));
     if (selectedLead && ids.includes(selectedLead.id)) { setCurrentView('list'); setSelectedLead(null); }
     showToast(`✅ 成功删除 ${ids.length} 条线索`);
   };
 
+  /**
+   * Excel 批量导入线索，将导入数据格式化并添加到列表
+   * @param {Array<Object>} importedLeads - 从 Excel 解析得到的线索数组
+   */
   const handleBatchImport = (importedLeads) => {
     const formatted = importedLeads.map((l, index) => ({
       ...l,

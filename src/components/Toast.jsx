@@ -1,6 +1,13 @@
 import React from 'react';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 
+/**
+ * 全局 Toast 通知组件
+ * 固定显示在页面顶部居中位置，自动由父组件控制显示/隐藏（message 为空时不渲染）。
+ * @param {Object} props
+ * @param {string} props.message - 提示文字，为空则不渲染
+ * @param {'success'|'error'} [props.type='success'] - 提示类型，影响颜色与图标
+ */
 export default function Toast({ message, type = 'success' }) {
   if (!message) return null;
   return (

@@ -279,7 +279,11 @@ const getSlaStatus = (level, days) => {
   return 'healthy';                       
 };
 
-// 解析中文时间字符串为排序权重，数值越大越接近现在
+/**
+ * 解析中文时间字符串为排序权重，数值越大表示越接近现在
+ * @param {string} dateStr - 中文时间字符串（如“今天”、“昨天”、“3月兔15日”）
+ * @returns {number} 排序权重
+ */
 const parseDateWeight = (dateStr) => {
   if (!dateStr) return 0;
   if (dateStr.includes('今天')) return 10000 + (parseInt(dateStr.match(/\d+/)) || 0); 
@@ -303,22 +307,35 @@ const EmptyState = ({ icon: Icon, message }) => (
   </div>
 );
 
+/** 销售画像管理主模块
+ * @param {Object} props
+ * @param {'manager'|'sales'} props.userRole - 当前登录用户角色
+ */
 export default function ProfileModule({ userRole = 'manager' }) {
   const [view, setView] = useState('list');
   const [salesList, setSalesList] = useState(initialSalesData);
   const [selectedUser, setSelectedUser] = useState(null);
-  
+
+  /**
+   * 跳转至指定销售人的详情页
+   * @param {Object} user - 销售人数据对象
+   */
   const handleViewDetail = (user) => { 
     setSelectedUser(user); 
     setView('detail'); 
     window.scrollTo(0, 0); 
   };
   
+  /** 返回销售列表页 */
   const handleBackToList = () => { 
     setView('list'); 
     setSelectedUser(null); 
   };
   
+  /**
+   * 保存销售人信息更改
+   * @param {Object} updatedUser - 修改后的销售人对象
+   */
   const handleSaveUser = (updatedUser) => {
     setSalesList(salesList.map(u => u.id === updatedUser.id ? updatedUser : u));
     setSelectedUser(updatedUser);

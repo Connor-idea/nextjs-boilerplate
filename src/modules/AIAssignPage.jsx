@@ -1,49 +1,47 @@
+/**
+ * AIAssignPage.jsx
+ * AI 智能分配方案页面
+ * 展示 AI 为待分配线索推荐的销售归属，支持手动调整、一键均衡及确认分配操作。
+ */
+
 import React, { useState } from 'react';
 import {
   Sparkles, Check, ChevronLeft,
-  BatteryFull, BatteryMedium, BatteryLow, RefreshCw,
+  RefreshCw,
   CheckCircle2
 } from 'lucide-react';
+import {
+  MOCK_REP_PERFORMANCE,
+  teamMembers,
+  AI_REASONS,
+  generatePreview,
+} from '../constants/salesData';
 
-const MOCK_REP_PERFORMANCE = {
-  '张三': { intent: 32, label: '饱和', icon: BatteryFull,   color: 'text-red-600 bg-red-50 border-red-200' },
-  '李四': { intent: 5,  label: '空闲', icon: BatteryLow,   color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '王五': { intent: 18, label: '正常', icon: BatteryMedium, color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  '赵六': { intent: 8,  label: '空闲', icon: BatteryLow,   color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '刘洋': { intent: 28, label: '偏高', icon: BatteryMedium, color: 'text-orange-700 bg-orange-50 border-orange-200' },
-  '孙琦': { intent: 2,  label: '空闲', icon: BatteryLow,   color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '周七': { intent: 15, label: '正常', icon: BatteryMedium, color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  '吴八': { intent: 22, label: '偏高', icon: BatteryMedium, color: 'text-orange-700 bg-orange-50 border-orange-200' },
-};
-const teamMembers = Object.keys(MOCK_REP_PERFORMANCE);
-
-const AI_REASONS = [
-  '该客户公司成立时间较长，主营业务为传统制造/零售，与销售【{owner}】画像匹配，其擅长攻坚传统行业大客户且历史复购率高。',
-  '该客户近期有较强的数字化转型需求，且属于互联网科技行业，【{owner}】有多个同行业成功交付案例，业务认知契合度达 95%。',
-  '线索来源为短视频获客，属于高频快消类，【{owner}】跟进此类线索转化率（28%）居团队首位，响应速度极快。',
-  '该客户评分较高，属于 A 类意向客户，【{owner}】当前负荷空间充足，优先承接高价值线索。',
-  '该客户所在行业与【{owner}】历史成交案例高度重合，行业认知匹配度达 91%，预计转化周期较短。',
-];
-
-const generatePreview = (leads) => {
-  const sorted = [...teamMembers].sort((a, b) => MOCK_REP_PERFORMANCE[a].intent - MOCK_REP_PERFORMANCE[b].intent);
-  return leads.map((lead, idx) => {
-    const owner = sorted[idx % sorted.length];
-    const reason = AI_REASONS[idx % AI_REASONS.length].replace(/\{owner\}/g, owner);
-    return { ...lead, owner, reason };
-  });
-};
-
+/**
+ * AI 智能分配方案页面组件
+ * @param {Object} props
+ * @param {Function} props.showToast - 全局 Toast 通知回调
+ * @param {Array<Object>} [props.initialLeads=[]] - 初始待分配线索列表
+ * @param {Function} [props.onBack] - 返回上级页面的回调
+ */
 export default function AIAssignPage({ showToast, initialLeads = [], onBack }) {
   const [preview, setPreview] = useState(() =>
     initialLeads.length > 0 ? generatePreview(initialLeads) : []
   );
   const [confirmed, setConfirmed] = useState(false);
 
+  /**
+   * 手动调整某条线索的归属销售
+   * @param {number|string} leadId - 线索 ID
+   * @param {string} newOwner - 新的归属销售姓名
+   */
   const handleOwnerChange = (leadId, newOwner) => {
     setPreview(prev => prev.map(item => item.id === leadId ? { ...item, owner: newOwner } : item));
   };
 
+  /**
+   * 一键均衡：按团队成员顺序重新轮流分配所有线索
+   */
   const handleBalance = () => {
     setPreview(prev => prev.map((item, idx) => ({
       ...item,
@@ -52,6 +50,9 @@ export default function AIAssignPage({ showToast, initialLeads = [], onBack }) {
     showToast('✅ 已按能力均衡重新分配', 'success');
   };
 
+  /**
+   * 确认分配：将当前预览方案提交，清空预览并标记已完成
+   */
   const handleConfirm = () => {
     if (preview.length === 0) return;
     const count = preview.length;

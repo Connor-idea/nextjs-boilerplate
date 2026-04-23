@@ -1,17 +1,34 @@
 import React, { useState } from 'react';
 import { Bell, ChevronDown } from 'lucide-react';
 
+/**
+ * 系统顶部导航栏组件
+ * 包含角色切换下拉菜单和系统通知提醒功能。
+ * @param {Object} props
+ * @param {'manager'|'sales'} props.userRole - 当前登录用户的角色
+ * @param {Function} props.setUserRole - 更新用户角色的回调函数
+ * @param {Array<Object>} props.notifications - 系统通知数组
+ * @param {Function} props.onOpenNotifications - 打开通知面板时的回调（通常用于标记已读）
+ */
 export default function SystemHeader({ userRole, setUserRole, notifications = [], onOpenNotifications }) {
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
+  /**
+   * 切换当前登录角色并关闭角色菜单
+   * @param {'manager'|'sales'} role - 目标角色
+   */
   const handleRoleChange = (role) => {
     setUserRole(role);
     setShowRoleMenu(false);
   };
 
+  /**
+   * 返回当前角色对应的显示文字和头像首字
+   * @returns {{ label: string, initial: string }}
+   */
   const getRoleDisplay = () => {
     if (userRole === 'manager') {
       return { label: '销售主管', initial: '主' };

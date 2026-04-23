@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Bell, ChevronDown, Building2, Menu } from 'lucide-react';
 import SystemSidebar from './components/SystemSidebar';
 import SystemHeader from './components/SystemHeader';
 import LeadsModule from './modules/LeadsModule';
@@ -9,25 +8,39 @@ import AIAssignPage from './modules/AIAssignPage';
 import Placeholder from './modules/Placeholder';
 import Toast from './components/Toast';
 
+/** 应用根组件，负责全局路由、角色状态、Toast 通知及系统消息管理 */
 export default function App() {
   const [activeModule, setActiveModule] = useState('leads');
   const [userRole, setUserRole] = useState('manager');
   const [aiAssignLeads, setAiAssignLeads] = useState([]);
-
-  const navigateToAIAssign = (leads) => {
-    setAiAssignLeads(leads);
-    setActiveModule('ai-assign');
-  };
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const [systemNotifications, setSystemNotifications] = useState([]);
 
+  /**
+   * 跳转至 AI 智能分配页面，并传入待分配线索列表
+   * @param {Array<Object>} leads - 待分配的线索数组
+   */
+  const navigateToAIAssign = (leads) => {
+    setAiAssignLeads(leads);
+    setActiveModule('ai-assign');
+  };
+
+  /**
+   * 显示全局 Toast 提示，3 秒后自动消失
+   * @param {string} message - 提示内容
+   * @param {'success'|'error'} [type='success'] - 提示类型
+   */
   const showToast = (message, type = 'success') => {
     setToastMessage(message);
     setToastType(type);
     setTimeout(() => setToastMessage(''), 3000);
   };
 
+  /**
+   * 向系统通知列表追加一条新通知，最多保留 100 条
+   * @param {Object} notification - 通知对象（title、message、targetUser 等）
+   */
   const pushSystemNotification = (notification) => {
     const record = {
       id: Date.now() + Math.floor(Math.random() * 1000),
@@ -38,6 +51,7 @@ export default function App() {
     setSystemNotifications((prev) => [record, ...prev].slice(0, 100));
   };
 
+  /** 将所有未读通知标记为已读 */
   const markAllNotificationsRead = () => {
     setSystemNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
   };
