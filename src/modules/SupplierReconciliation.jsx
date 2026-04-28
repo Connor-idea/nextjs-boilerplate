@@ -656,11 +656,11 @@ function BillDetail({ bill, onBack }) {
 /* ─────────────────────────── 小工具组件 ─────────────────────────── */
 
 function ActionBtn({ label, icon, onClick, variant = 'default', disabled = false }) {
-  const base = 'relative flex items-center gap-1 text-xs px-3 py-1.5 rounded border transition-colors group/btn';
+  const base = 'flex items-center gap-1 text-xs px-3 py-1.5 rounded border transition-colors';
   const enabledStyle = 'border-slate-300 text-slate-600 hover:bg-slate-50 cursor-pointer';
   const disabledStyle = 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50';
   return (
-    <div className="relative inline-flex">
+    <div className="relative inline-flex group/btn">
       <button
         onClick={disabled ? undefined : onClick}
         disabled={disabled}
@@ -670,9 +670,10 @@ function ActionBtn({ label, icon, onClick, variant = 'default', disabled = false
         {label}
       </button>
       {disabled && (
-        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-50
-          whitespace-nowrap rounded bg-slate-700 px-2 py-1 text-xs text-white opacity-0
-          group-hover/btn:opacity-100 transition-opacity shadow-lg">
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50
+          whitespace-nowrap rounded bg-slate-700 px-2.5 py-1.5 text-xs text-white
+          opacity-0 group-hover/btn:opacity-100 transition-opacity shadow-lg
+          pointer-events-none">
           请选中需要操作的对账单后再进行「{label}」操作
           <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-700" />
         </div>
