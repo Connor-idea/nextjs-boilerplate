@@ -1,19 +1,80 @@
-# 🎉 CRM 原型 - 项目交付总结
+# 🎉 CRM 原型 – 项目交付总结
 
-## 📋 完成情况
+## 📅 最近更新：2026-04-28
 
-### ✅ 依赖检查完成
+---
 
-| 组件 | 状态 | 版本 |
-|------|------|------|
-| **React** | ✅ 已安装 | 18.2.0 |
-| **React DOM** | ✅ 已安装 | 18.2.0 |
-| **Lucide React** | ✅ 已安装 | 0.263.1 |
-| **Tailwind CSS** | ✅ 已安装 | 3.3.0 |
-| **PostCSS** | ✅ 已安装 | 8.4.0 |
-| **Autoprefixer** | ✅ 已安装 | 10.4.0 |
-| **Vite** | ✅ 已安装 | 4.5.14 |
-| **@vitejs/plugin-react** | ✅ 已安装 | 4.0.3 |
+## 🗒 功能变更记录
+
+### 2026-04-28
+| 变更内容 | 涉及文件 |
+|---|---|
+| 新增财务管理–供应商结算模块 | `src/modules/SupplierReconciliation.jsx`（新建） |
+| 供应商结算：补全 22 个表格字段 | `SupplierReconciliation.jsx` |
+| 供应商结算：操作列悬浮固定到右侧 | `SupplierReconciliation.jsx` |
+| 供应商结算：查看详情+审核完结按鈕，审核完结按条件显示 | `SupplierReconciliation.jsx` |
+| 供应商结算：补款/退款调账/批量操作按鈕名称更新 | `SupplierReconciliation.jsx` |
+| 供应商结算：无选中时操作按鈕置灰，悬停显示 Portal Tooltip | `SupplierReconciliation.jsx` |
+| 供应商结算：账单编号可点击跳转对账单详情页 | `SupplierReconciliation.jsx` |
+| 供应商结算：账单编号列使用蓝色字体 | `SupplierReconciliation.jsx` |
+| 俧边栏财务管理改为可折叠分组，含 8 个子菜单 | `src/components/SystemSidebar.jsx` |
+| App.jsx 挂载所有财务子模块路由 | `src/App.jsx` |
+| 引入 @vercel/analytics 和 @vercel/speed-insights | `src/App.jsx`、`package.json` |
+| 新增 `npm run deploy`（build+push）和 `npm run watch`（监听自动推送） | `package.json`、`scripts/auto-push.mjs`（新建） |
+| 修复 Analytics import 路径（next → react） | `src/App.jsx` |
+
+---
+
+## ✅ 完整功能清单
+
+### 导航结构
+- 首页
+- 员工管理 → 销售画像
+- 客户管理
+- **财务管理**（可折叠分组）
+  - 供应商结算 ✅
+  - 系统服务费 🚧
+  - 员工对账单 🚧
+  - 员工账单校正 🚧
+  - 渠道对账单 🚧
+  - 渠道账单校正 🚧
+  - 客户账单校正 🚧
+  - 结算订单列表 🚧
+- 渠道管理
+- 销售线索 → 线索管理 / AI推客
+- 个人中心
+
+### 供应商结算模块完整功能
+- 简易统计卡片：对账单总数/总金额/实际成本价/服务费
+- 多字段筛选区：账单类型、日期范围、金额范围、供应商信息
+- 22 列完整表格，操作列 sticky 固定右侧
+- 按鈕行：补款调账 / 退款调账 / 批量发起服务费完结 / 批量审核完结 / 导出
+- 无选中时头部操作按鈕自动置灰，悬停显示 Portal Tooltip 提示文字
+- 账单编号蓝色可点击进入详情页
+- 详情页展示全部字段，支持返回列表
+- 操作列内「查看详情」常显；所有状态均为已开票/已结算时额外显示「审核完结」
+- 分页：页码跳转、每页条数切换（10/20/50）
+
+### 部署 & 连续集成
+- GitHub：`Connor-idea/nextjs-boilerplate`
+- Vercel：推送即自动部署
+- `npm run deploy`：一键构建+推送
+- `npm run watch`：监听 src/ 文件变动自动提交推送
+
+---
+
+## 📦 依赖包状态
+
+| 包名 | 版本 | 状态 |
+|---|---|---|
+| react | 18.2.0 | ✅ |
+| react-dom | 18.2.0 | ✅ |
+| lucide-react | 0.263.1 | ✅ |
+| xlsx | 0.18.5 | ✅ |
+| @vercel/analytics | latest | ✅ |
+| @vercel/speed-insights | latest | ✅ |
+| vite | 4.5.14 | ✅ |
+| tailwindcss | 3.3.0 | ✅ |
 
 ### ✅ 开发环境建立完成
 

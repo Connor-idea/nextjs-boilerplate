@@ -5,53 +5,28 @@
 ## 📦 依赖清单
 
 ### 核心依赖
-- **React** (^18.2.0) - UI 框架
-- **React DOM** (^18.2.0) - React 渲染库
-- **Lucide React** (^0.263.1) - 图标库
+- **React** (^18.2.0)
+- **React DOM** (^18.2.0)
+- **Lucide React** (^0.263.1)
+- **xlsx** (^0.18.5) - Excel 导入导出
+- **@vercel/analytics** - Vercel 访问数据分析
+- **@vercel/speed-insights** - Vercel 性能监控
 
 ### 构建工具
-- **Vite** (^4.4.0) - 极速前端构建工具
-- **@vitejs/plugin-react** (^4.0.0) - Vite React 插件
-
-### 样式框架
-- **Tailwind CSS** (^3.3.0) - 原子化 CSS 框架
-- **PostCSS** (^8.4.0) - CSS 转换工具
-- **Autoprefixer** (^10.4.0) - 自动添加浏览器前缀
+- **Vite** (^4.4.0)
+- **@vitejs/plugin-react** (^4.0.0)
+- **Tailwind CSS** (^3.3.0)
+- **PostCSS** (^8.4.0)
+- **Autoprefixer** (^10.4.0)
 
 ## 🚀 快速开始
 
-### 1. 安装依赖
-
 ```bash
 npm install
-```
-
-或使用 yarn:
-
-```bash
-yarn install
-```
-
-### 2. 启动开发服务器
-
-```bash
-npm run dev
-```
-
-开发服务器将自动打开浏览器，访问 `http://127.0.0.1:3000`
-
-### 3. 构建生产版本
-
-```bash
-npm run build
-```
-
-生产文件将生成在 `dist/` 目录
-
-### 4. 预览生产构建
-
-```bash
-npm run preview
+npm run dev          # 开发服务器，保存即刷新，访问 http://127.0.0.1:3000
+npm run build        # 构建生产版本
+npm run deploy       # 构建 + 自动提交并推送到 GitHub（触发 Vercel 自动部署）
+npm run watch        # 监听 src/ 文件变动，自动提交推送
 ```
 
 ## 📁 项目结构
@@ -59,24 +34,52 @@ npm run preview
 ```
 CRM原型/
 ├── src/
-│   ├── components/          # 通用组件
-│   │   ├── SystemSidebar.jsx    # 左侧导航栏
+│   ├── components/
+│   │   ├── SystemSidebar.jsx    # 左侧导航栏（支持多级可折叠菜单）
 │   │   ├── SystemHeader.jsx     # 顶部头部
-│   │   └── Toast.jsx            # 消息提示
-│   ├── modules/             # 功能模块
-│   │   ├── LeadsModule.jsx      # 线索管理
-│   │   ├── PitchModule.jsx      # AI 推客
-│   │   └── ProfileModule.jsx    # 销售画像
-│   ├── App.jsx              # 主应用组件
-│   ├── main.jsx             # 应用入口
-│   └── index.css            # 全局样式
-├── index.html               # HTML 模板
-├── package.json             # npm 配置
-├── vite.config.js           # Vite 配置
-├── tailwind.config.js       # Tailwind 配置
-├── postcss.config.js        # PostCSS 配置
-└── .gitignore               # Git 忽略文件
+│   │   └── Toast.jsx            # 全局消息提示
+│   ├── modules/
+│   │   ├── LeadsModule.jsx          # 线索管理
+│   │   ├── AITuigke.jsx             # AI 推客
+│   │   ├── ProfileModule.jsx        # 销售画像
+│   │   ├── AIAssignPage.jsx         # AI 智能分配
+│   │   ├── SupplierReconciliation.jsx  # 财务管理 – 供应商结算
+│   │   └── Placeholder.jsx          # 开发中占位页
+│   ├── constants/
+│   │   └── salesData.js
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+├── scripts/
+│   └── auto-push.mjs            # 监听 src/ 自动提交推送脚本
+├── index.html
+├── package.json
+├── vite.config.js
+├── tailwind.config.js
+├── postcss.config.js
+└── vercel.json
 ```
+
+## 📊 已实现功能模块
+
+| 模块 | 状态 | 说明 |
+|---|---|---|
+| 线索管理 | ✅ 完成 | 列表/详情/导入/AI分配 |
+| AI 推客 | ✅ 完成 | 智能话术推荐 |
+| 销售画像 | ✅ 完成 | 销售人员画像分析 |
+| AI 智能分配 | ✅ 完成 | 线索自动分配 |
+| 财务–供应商结算 | ✅ 完成 | 对账单列表/详情/筛选/分页 |
+| 其他财务子模块 | 🚧 开发中 | 系统服务费/员工对账单等 |
+| 客户管理 | 🚧 开发中 | - |
+| 渠道管理 | 🚧 开发中 | - |
+| 个人中心 | 🚧 开发中 | - |
+
+## 🔄 自动部署
+
+项目已配置 GitHub + Vercel 自动流水线：
+1. `npm run deploy` 或 `git push origin main`
+2. Vercel 自动识别推送并重新部署
+3. 部署完成后即可访问线上地址
 
 ## 🎨 UI 特性
 

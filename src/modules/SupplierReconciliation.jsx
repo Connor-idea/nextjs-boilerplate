@@ -673,7 +673,6 @@ function ActionBtn({ label, icon, onClick, variant = 'default', disabled = false
     <>
       <button
         onClick={disabled ? undefined : onClick}
-        disabled={disabled}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         className={`${base} ${disabled ? disabledStyle : enabledStyle}`}
