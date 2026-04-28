@@ -161,6 +161,9 @@ export default function SupplierReconciliation() {
   /* ── 选中行 ── */
   const [selectedIds, setSelectedIds] = useState(new Set());
 
+  /* ── 详情页 ── */
+  const [detailBill, setDetailBill] = useState(null);
+
   /* ── 筛选后数据 ── */
   const filteredData = useMemo(() => {
     return MOCK_BILLS.filter((b) => {
@@ -223,6 +226,7 @@ export default function SupplierReconciliation() {
   };
 
   const allOnPageSelected = pagedData.length > 0 && pagedData.every((b) => selectedIds.has(b.id));
+  const hasSelection = selectedIds.size > 0;
 
   /* ── 分页页码渲染 ── */
   const renderPageButtons = () => {
@@ -243,6 +247,12 @@ export default function SupplierReconciliation() {
   };
 
   /* ── 渲染 ── */
+
+  /* 详情页视图 */
+  if (detailBill) {
+    return <BillDetail bill={detailBill} onBack={() => setDetailBill(null)} />;
+  }
+
   return (
     <div className="p-6 bg-slate-50 min-h-full">
 
@@ -360,10 +370,10 @@ export default function SupplierReconciliation() {
 
         {/* 操作按钮行 */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
-          <ActionBtn label="补款调账" onClick={() => {}} />
-          <ActionBtn label="退款调账" onClick={() => {}} />
-          <ActionBtn label="批量发起服务费完结" onClick={() => {}} />
-          <ActionBtn label="批量审核完结" onClick={() => {}} />
+          <ActionBtn label="补款调账" disabled={!hasSelection} onClick={() => {}} />
+          <ActionBtn label="退款调账" disabled={!hasSelection} onClick={() => {}} />
+          <ActionBtn label="批量发起服务费完结" disabled={!hasSelection} onClick={() => {}} />
+          <ActionBtn label="批量审核完结" disabled={!hasSelection} onClick={() => {}} />
           <div className="ml-auto">
             <ActionBtn
               label="导出"
@@ -424,7 +434,14 @@ export default function SupplierReconciliation() {
                       className="w-3.5 h-3.5 cursor-pointer"
                     />
                   </td>
-                  <td className="px-3 py-3 text-xs text-slate-600 whitespace-nowrap">{bill.billNo}</td>
+                  <td className="px-3 py-3 text-xs whitespace-nowrap">
+                    <button
+                      onClick={() => setDetailBill(bill)}
+                      className="text-blue-500 hover:text-blue-700 hover:underline font-medium transition-colors"
+                    >
+                      {bill.billNo}
+                    </button>
+                  </td>
                   <td className="px-3 py-3 whitespace-nowrap">{bill.billType}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-slate-700">
                     ¥{bill.receivable.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
@@ -559,17 +576,29 @@ export default function SupplierReconciliation() {
 
 /* ─────────────────────────── 小工具组件 ─────────────────────────── */
 
-function ActionBtn({ label, icon, onClick, variant = 'default' }) {
-  const base = 'flex items-center gap-1 text-xs px-3 py-1.5 rounded border transition-colors';
-  const styles = {
-    default: 'border-slate-300 text-slate-600 hover:bg-slate-50',
-    outline: 'border-slate-300 text-slate-600 hover:bg-slate-50',
-  };
+function ActionBtn({ label, icon, onClick, variant = 'default', disabled = false }) {
+  const base = 'relative flex items-center gap-1 text-xs px-3 py-1.5 rounded border transition-colors group/btn';
+  const enabledStyle = 'border-slate-300 text-slate-600 hover:bg-slate-50 cursor-pointer';
+  const disabledStyle = 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50';
   return (
-    <button onClick={onClick} className={`${base} ${styles[variant]}`}>
-      {icon}
-      {label}
-    </button>
+    <div className="relative inline-flex">
+      <button
+        onClick={disabled ? undefined : onClick}
+        disabled={disabled}
+        className={`${base} ${disabled ? disabledStyle : enabledStyle}`}
+      >
+        {icon}
+        {label}
+      </button>
+      {disabled && (
+        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-50
+          whitespace-nowrap rounded bg-slate-700 px-2 py-1 text-xs text-white opacity-0
+          group-hover/btn:opacity-100 transition-opacity shadow-lg">
+          请选中需要操作的对账单后再进行「{label}」操作
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-700" />
+        </div>
+      )}
+    </div>
   );
 }
 
