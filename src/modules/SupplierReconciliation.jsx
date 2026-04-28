@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import ReactDOM from 'react-dom';
 import { Search, RotateCcw, Download, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 /* ─────────────────────────── 模拟数据 ─────────────────────────── */
