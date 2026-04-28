@@ -8,6 +8,8 @@ import AIAssignPage from './modules/AIAssignPage';
 import Placeholder from './modules/Placeholder';
 import SupplierReconciliation from './modules/SupplierReconciliation';
 import Toast from './components/Toast';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 /** 应用根组件，负责全局路由、角色状态、Toast 通知及系统消息管理 */
 export default function App() {
@@ -94,6 +96,8 @@ export default function App() {
         </div>
       </div>
       <Toast message={toastMessage} type={toastType} />
+      <Analytics />
+      <SpeedInsights />
     </div>
   );
 }

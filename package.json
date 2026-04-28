@@ -6,9 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "deploy": "vite build && git add -A && git commit -m \"build: $(date '+%Y-%m-%d %H:%M:%S')\" && git push origin main",
+    "watch": "node scripts/auto-push.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
