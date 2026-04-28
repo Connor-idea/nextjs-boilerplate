@@ -553,8 +553,8 @@ function SalesDetail({ user, onBack, onSave }) {
   const [modalTargetData, setModalTargetData] = useState({ ...formData.targets });
   
   // 漏斗多维筛选状态
-  const [funnelLeadType, setFunnelLeadType] = useState('全部');
-  const [funnelCustType, setFunnelCustType] = useState('全部');
+  // 线索类型多选（空数组 = 全部）
+  const [funnelLeadTypes, setFunnelLeadTypes] = useState([]);
   const [funnelIndustry, setFunnelIndustry] = useState('全部');
 
   // 排序与筛选状态
@@ -576,8 +576,7 @@ function SalesDetail({ user, onBack, onSave }) {
         setShowTargetModal(false);
         setNewTag('');
         setNewInd('');
-        setFunnelLeadType('全部');
-        setFunnelCustType('全部');
+        setFunnelLeadTypes([]);
         setFunnelIndustry('全部');
         setSortConfig({ key: null, direction: 'asc' });
         setAbnormalFilter('全部');
@@ -587,9 +586,9 @@ function SalesDetail({ user, onBack, onSave }) {
     }
   }, [user]);
 
-  /** 各漏斗筛选维度的数量乘数 */
-  const FUNNEL_LEAD_TYPE_SCALE = { '全部': 1.0, '销售线索': 0.45, '公司线索': 0.38, 'AI推客': 0.35, '再分配线索': 0.17 };
-  const FUNNEL_CUST_TYPE_SCALE = { '全部': 1.0, '新客户': 0.65, '复购客户': 0.35 };
+  /** 各线索类型占总量比例（三者相加 = 1.0）*/
+  const FUNNEL_LEAD_TYPE_SCALE = { '公司线索': 0.45, '销售录入线索': 0.38, '再分配线索': 0.17 };
+  /** 行业筛选权重 */
   const FUNNEL_INDUSTRY_SCALE  = { '全部': 1.0, '互联网': 0.42, '高新制造': 0.31, '金融': 0.16, '零售': 0.11 };
 
   const toggleEdit = (sectionKey) => {
@@ -724,27 +723,28 @@ function SalesDetail({ user, onBack, onSave }) {
   const baseFunnel = formData.funnelData['当月'];
 
   // 三维筛选乘数（独立相乘，非全部时才缩放）
+  // 线索类型乘数：若有选中则累加各类型比例，否则视为全部（1.0）
+  const leadTypeMulti = funnelLeadTypes.length > 0
+    ? funnelLeadTypes.reduce((sum, t) => sum + (FUNNEL_LEAD_TYPE_SCALE[t] ?? 0), 0)
+    : 1.0;
   const funnelMulti =
-    (funnelLeadType !== '全部' ? FUNNEL_LEAD_TYPE_SCALE[funnelLeadType] ?? 1 : 1) *
-    (funnelCustType !== '全部' ? FUNNEL_CUST_TYPE_SCALE[funnelCustType] ?? 1 : 1) *
+    leadTypeMulti *
     (funnelIndustry !== '全部' ? FUNNEL_INDUSTRY_SCALE[funnelIndustry] ?? 1 : 1);
 
   /**
-   * 将原始漏斗数据乘以筛选乘数，生成四阶段漏斗 stage 数组。
-   * 阶段：线索获取 → 有效接触 → 转化客户 → 签约成交
+   * 将原始漏斗数据乘以筛选乘数，生成三阶段漏斗 stage 数组。
+   * 阶段：线索 → 客户 → 签约成交
    * @param {{ leads:number, customers:number, closed:number, amount:string }} data
    * @param {number} multi - 筛选乘数（1 = 不缩放）
    */
   const buildFunnelStages = (data, multi) => {
     const leads     = Math.max(1, Math.round(data.leads     * multi));
-    const contacted = Math.max(1, Math.round(data.leads     * multi * 0.72));
     const customers = Math.max(1, Math.round(data.customers * multi));
     const closed    = Math.max(0, Math.round(data.closed    * multi));
     const amount    = (parseFloat(data.amount) * multi).toFixed(1) + '万';
     return [
-      { name: '线索获取', count: leads },
-      { name: '有效接触', count: contacted },
-      { name: '转化客户', count: customers },
+      { name: '线索', count: leads },
+      { name: '客户', count: customers },
       { name: '签约成交', count: closed, extra: amount },
     ];
   };
@@ -839,54 +839,57 @@ function SalesDetail({ user, onBack, onSave }) {
                 </div>
               )}
 
-              {/* 漏斗图：线索月客户流向分析 */}
+              {/* 漏斗图：线索转化分析 */}
               <div className="bg-white border border-slate-200 p-6 shadow-sm mt-10 border-t border-slate-100 pt-8">
                 <h3 className="text-base font-bold text-slate-800 flex items-center shrink-0 mb-4">
                   <Filter className="w-5 h-5 mr-2 text-blue-500" />
-                  线索月客户流向分析
+                  线索转化分析
                   <span className="text-xs font-normal text-slate-500 ml-2">漏斗转化 · 多维筛选</span>
                 </h3>
 
                 {/* 三行筛选器：线索类型 / 客户类型 / 行业 */}
                 <div className="bg-slate-50 border border-slate-200 p-4 mb-6 space-y-3">
-                  {/* 线索类型 */}
+                  {/* 线索类型（多选，全部 = 清空选中） */}
                   <div className="flex items-center gap-3 flex-wrap">
                     <span className="text-xs font-bold text-slate-600 shrink-0 w-14">线索类型</span>
                     <div className="flex gap-2 flex-wrap">
-                      {['全部', '销售线索', '公司线索', 'AI推客', '再分配线索'].map(opt => (
-                        <button
-                          key={opt}
-                          onClick={() => setFunnelLeadType(opt)}
-                          className={`text-xs px-3 py-1 border font-medium transition-colors ${
-                            funnelLeadType === opt
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'
-                          }`}
-                        >
-                          {opt}
-                        </button>
-                      ))}
+                      {/* 全部按鈕 */}
+                      <button
+                        onClick={() => setFunnelLeadTypes([])}
+                        className={`text-xs px-3 py-1 border font-medium transition-colors ${
+                          funnelLeadTypes.length === 0
+                            ? 'bg-blue-600 text-white border-blue-600'
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                        }`}
+                      >
+                        全部
+                      </button>
+                      {['公司线索', '销售录入线索', '再分配线索'].map(opt => {
+                        const selected = funnelLeadTypes.includes(opt);
+                        return (
+                          <button
+                            key={opt}
+                            onClick={() =>
+                              setFunnelLeadTypes(prev =>
+                                prev.includes(opt) ? prev.filter(t => t !== opt) : [...prev, opt]
+                              )
+                            }
+                            className={`text-xs px-3 py-1 border font-medium transition-colors ${
+                              selected
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                            }`}
+                          >
+                            {selected ? '✓ ' : ''}{opt}
+                          </button>
+                        );
+                      })}
                     </div>
-                  </div>
-
-                  {/* 客户类型 */}
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="text-xs font-bold text-slate-600 shrink-0 w-14">客户类型</span>
-                    <div className="flex gap-2 flex-wrap">
-                      {['全部', '新客户', '复购客户'].map(opt => (
-                        <button
-                          key={opt}
-                          onClick={() => setFunnelCustType(opt)}
-                          className={`text-xs px-3 py-1 border font-medium transition-colors ${
-                            funnelCustType === opt
-                              ? 'bg-emerald-600 text-white border-emerald-600'
-                              : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300 hover:text-emerald-600'
-                          }`}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
+                    {funnelLeadTypes.length > 0 && (
+                      <span className="text-[10px] text-blue-500 bg-blue-50 border border-blue-200 px-2 py-0.5">
+                        已选 {funnelLeadTypes.length} 项
+                      </span>
+                    )}
                   </div>
 
                   {/* 行业 */}
@@ -907,9 +910,9 @@ function SalesDetail({ user, onBack, onSave }) {
                         </button>
                       ))}
                     </div>
-                    {(funnelLeadType !== '全部' || funnelCustType !== '全部' || funnelIndustry !== '全部') && (
+                    {(funnelLeadTypes.length > 0 || funnelIndustry !== '全部') && (
                       <button
-                        onClick={() => { setFunnelLeadType('全部'); setFunnelCustType('全部'); setFunnelIndustry('全部'); }}
+                        onClick={() => { setFunnelLeadTypes([]); setFunnelIndustry('全部'); }}
                         className="ml-auto text-xs text-slate-400 hover:text-slate-700 underline"
                       >
                         重置筛选

@@ -398,7 +398,7 @@ const CompanyInfoSection = ({ lead, showToast, onAddCompanyNote, onAddHistoryRec
             </div>
             <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 text-sm text-slate-600">
               <span className="flex items-center bg-white border border-slate-200 px-2.5 py-1 shadow-sm"><Building2 size={14} className="mr-1.5 text-slate-400"/> 人工智能 / 软件开发</span>
-              <span className="flex items-center bg-white border border-slate-200 px-2.5 py-1 shadow-sm text-xs">成立: 2019-06-11</span>
+              <span className="flex items-center bg-white border border-slate-200 px-2.5 py-1 shadow-sm text-xs">成立年限：{Math.floor((Date.now() - new Date('2019-06-11').getTime()) / (365.25 * 24 * 3600 * 1000))}年</span>
             </div>
           </div>
           <div className="flex-shrink-0 flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 to-rose-50 px-5 py-3 border border-orange-100 shadow-sm relative overflow-hidden group cursor-help">
@@ -419,7 +419,7 @@ const CompanyInfoSection = ({ lead, showToast, onAddCompanyNote, onAddHistoryRec
       </div>
       <div className="p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-          <InfoItem label="注册时间" value="2019-06-11" />
+          <InfoItem label="成立时间" value="2019-06-11" />
           <InfoItem label="实缴资本" value="5000万人民币" />
           <InfoItem label="参保人数" value="350人" />
           <InfoItem label="公开年报" value="2024年度已公示" source="国家企业信用信息公示系统" link="#" />

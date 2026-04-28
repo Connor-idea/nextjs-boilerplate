@@ -57,7 +57,15 @@ const initialLeads = [
   { id: 6, name: '周杰', company: '北京百度网讯科技有限公司', industry: '人工智能', phone: '未知号码', email: 'zhoujie@example.com', status: '异常线索', source: '信息流广告', date: '2024-03-05', owner: '未分配', isSelfAdded: false, score: null, daysUncontacted: 1, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 7, name: '刘涛', company: '华为技术有限公司', industry: '通信电子', phone: '139-6666', email: 'liutao@example.com', status: '退回待分配', source: '网络搜索', date: '2024-03-06', owner: '未分配', isSelfAdded: false, score: 92, daysUncontacted: 5, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 8, name: '吴磊', company: '小米科技有限责任公司', industry: '智能硬件', phone: '131-5555-4444', email: 'wulei@example.com', status: '三次分配线索', source: '批量导入', date: '2024-03-07', owner: '张三', isSelfAdded: false, score: 78, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
-  { id: 9, name: '陈晨', company: '网易（杭州）网络有限公司', industry: '游戏开发', phone: '138-1111-2222', email: 'chenchen@example.com', status: '新线索', source: '名片', date: '2024-03-08', owner: '未分配', isSelfAdded: false, score: 82, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 9, name: '陈晨', company: '网易（杭州）网络有限公司', industry: '游戏开发', phone: '138-1111-2222', email: 'chenchen@example.com', status: '新线索', source: '名片', rating: 'B', date: '2024-03-08', owner: '未分配', isSelfAdded: false, score: 82, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 12, name: '孙悦', company: '美团点评有限公司', industry: '电子商务', phone: '135-8888-9999', email: 'sunyue@meituan.com', status: '新线索', source: '展会画册', rating: 'A', date: '2024-04-01', owner: '李四', isSelfAdded: false, score: 97, daysUncontacted: 1, trackStatus: 'pending', contacts: [], history: [], companyNote: '预算充足，决策链短，优先跟进' },
+  { id: 13, name: '郑浩', company: '滴滴出行科技有限公司', industry: '企业服务', phone: '132-7777-6666', email: 'zhenghao@didiglobal.com', status: '新线索', source: '老客户转介绍', rating: 'A', date: '2024-04-03', owner: '王五', isSelfAdded: false, score: 94, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 14, name: '谢婷', company: '商汤科技有限公司', industry: '人工智能', phone: '133-4444-5555', email: 'xieting@sensetime.com', status: '二次分配线索', source: '信息流广告', rating: 'B', date: '2024-04-05', owner: '张三', isSelfAdded: false, score: 85, daysUncontacted: 2, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 15, name: '许凡', company: '蔚来汽车有限公司', industry: '智能制造', phone: '136-3333-2222', email: 'xufan@nio.com', status: '新线索', source: '小红书', rating: 'B', date: '2024-04-06', owner: '未分配', isSelfAdded: false, score: 79, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 16, name: '魏鑫', company: '好未来教育科技集团', industry: '企业服务', phone: '137-2222-1111', email: 'weixin@tal.com', status: '退回待分配', source: '网络搜索', rating: 'C', date: '2024-04-08', owner: '未分配', isSelfAdded: false, score: 63, daysUncontacted: 4, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 17, name: '曹静', company: '中通快递股份有限公司', industry: '电子商务', phone: '139-9999-8888', email: 'caojing@zto.com', status: '新线索', source: '批量导入', rating: 'C', date: '2024-04-09', owner: '孙琦', isSelfAdded: false, score: 58, daysUncontacted: 1, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 18, name: '黄磊', company: '猎豹移动科技有限公司', industry: '人工智能', phone: '131-6666-7777', email: 'huanglei@cmcm.com', status: '失效线索', source: '名片录入', rating: 'D', date: '2024-03-20', owner: '李四', isSelfAdded: false, score: 32, daysUncontacted: 20, trackStatus: 'draft', contacts: [], history: [], companyNote: '多次联系无响应' },
+  { id: 19, name: '彭芳', company: '途家网络技术有限公司', industry: '电子商务', phone: '138-5555-4321', email: 'pengfang@tujia.com', status: '三次分配线索', source: '抖音', rating: 'D', date: '2024-03-18', owner: '王五', isSelfAdded: false, score: 28, daysUncontacted: 12, trackStatus: 'pending', contacts: [], history: [], companyNote: '意向极低' },
 ];
 
 const EmptyState = ({ text }) => (
@@ -206,7 +214,7 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
       id: Date.now(), 
       date: new Date().toISOString().split('T')[0], 
       company: newLeadData.companyName || '未知公司',
-      status: '新线索', owner: currentUserName, isSelfAdded: true,
+      status: '新线索', owner: currentUserName, isSelfAdded: true, rating: 'C',
       score: 80, daysUncontacted: 0, trackStatus: 'pending', companyNote: newLeadData.companyNote || '', contacts: [defaultContact], history: [] 
     };
     const nextLeads = [lead, ...leads];
@@ -506,6 +514,7 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
   const [filterIndustry, setFilterIndustry] = useState([]);
   const [filterSource, setFilterSource] = useState([]);
   const [filterStatus, setFilterStatus] = useState([]);
+  const [filterRating, setFilterRating] = useState([]);
   
   const filterOptions = {
     industries: ['人工智能', '企业服务', '智能制造', '电子商务', '通信电子', '游戏开发'],
@@ -518,10 +527,11 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
     (filterOwner.length === 0 || filterOwner.includes(l.owner)) &&
     (filterIndustry.length === 0 || filterIndustry.includes(l.industry)) &&
     (filterSource.length === 0 || filterSource.some(s => l.source.includes(s))) &&
-    (filterStatus.length === 0 || filterStatus.includes(l.status))
+    (filterStatus.length === 0 || filterStatus.includes(l.status)) &&
+    (filterRating.length === 0 || filterRating.includes(l.rating))
   );
 
-  useEffect(() => { setCurrentPage(1); setSelectedIds([]); }, [searchQuery, filterOwner, userRole, filterIndustry, filterSource, filterStatus]);
+  useEffect(() => { setCurrentPage(1); setSelectedIds([]); }, [searchQuery, filterOwner, userRole, filterIndustry, filterSource, filterStatus, filterRating]);
 
   const totalPages = Math.max(1, Math.ceil(displayLeads.length / itemsPerPage));
   const paginatedLeads = displayLeads.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -690,12 +700,25 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
             </div>
           </div>
           {/* 线索状态筛选 */}
-          <div className="flex items-start gap-4 py-3">
+          <div className="flex items-start gap-4 py-3 border-b border-slate-100/80">
             <div className="text-sm font-bold text-slate-700 w-16 shrink-0 pt-1">状态</div>
             <div className="flex flex-wrap gap-2 flex-1">
               <button onClick={() => setFilterStatus([])} className={`px-3 py-1 text-xs font-medium transition-all ${filterStatus.length === 0 ? 'bg-blue-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>不限</button>
               {filterOptions.statuses.map(opt => (
                 <button key={opt} onClick={() => setFilterStatus(prev => prev.includes(opt) ? prev.filter(x => x !== opt) : [...prev, opt])} className={`px-3 py-1 text-xs font-medium transition-all ${filterStatus.includes(opt) ? 'bg-blue-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>{opt}</button>
+              ))}
+            </div>
+          </div>
+          {/* 线索评级筛选 */}
+          <div className="flex items-start gap-4 py-3">
+            <div className="text-sm font-bold text-slate-700 w-16 shrink-0 pt-1">评级</div>
+            <div className="flex flex-wrap gap-2 flex-1">
+              <button onClick={() => setFilterRating([])} className={`px-3 py-1 text-xs font-medium transition-all ${filterRating.length === 0 ? 'bg-blue-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>不限</button>
+              {[{ v: 'A', cls: 'border-amber-400 text-amber-600 bg-amber-50' }, { v: 'B', cls: 'border-blue-300 text-blue-600 bg-blue-50' }, { v: 'C', cls: 'border-slate-300 text-slate-500 bg-slate-50' }, { v: 'D', cls: 'border-slate-200 text-slate-400 bg-white' }].map(({ v, cls }) => (
+                <button key={v} onClick={() => setFilterRating(prev => prev.includes(v) ? prev.filter(x => x !== v) : [...prev, v])}
+                  className={`w-8 h-7 text-xs font-black border transition-all ${filterRating.includes(v) ? cls + ' ring-2 ring-offset-1 ring-current' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'}`}>
+                  {v}
+                </button>
               ))}
             </div>
           </div>
@@ -723,6 +746,7 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
                 <th className="px-6 py-4">行业</th>
                 <th className="px-6 py-4">联系人</th>
                 <th className="px-6 py-4">线索来源</th>
+                <th className="px-6 py-4">线索评级</th>
                 <th className="px-6 py-4">线索状态</th>
                 <th className="px-6 py-4">负责人</th>
                 <th className="px-6 py-4 text-right">操作</th>
@@ -745,6 +769,16 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
                     <td className="px-6 py-4 text-slate-500">{l.industry || '--'}</td>
                     <td className="px-6 py-4 font-medium text-slate-900">{l.name}</td>
                     <td className="px-6 py-4 text-slate-500">{l.source}</td>
+                    <td className="px-6 py-4">
+                      {l.rating ? (
+                        <span className={`inline-flex items-center justify-center w-7 h-7 text-xs font-black border ${
+                          l.rating === 'A' ? 'bg-amber-50 text-amber-600 border-amber-400' :
+                          l.rating === 'B' ? 'bg-blue-50 text-blue-600 border-blue-300' :
+                          l.rating === 'C' ? 'bg-slate-50 text-slate-500 border-slate-300' :
+                          'bg-white text-slate-400 border-slate-200'
+                        }`}>{l.rating}</span>
+                      ) : <span className="text-slate-300 text-xs">--</span>}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1 text-[11px] font-medium border ${statusColors[l.status] || 'bg-slate-50 border-slate-200'}`}>{l.status}</span>
                     </td>
@@ -1442,7 +1476,7 @@ const CompanyInfoSection = ({ lead }) => {
             </div>
             <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 text-xs text-slate-600">
               <span className="flex items-center bg-slate-50 border border-slate-200 px-3 py-1.5"><Building2 size={14} className="mr-1.5 text-blue-500"/> {lead?.industry || '未知行业'}</span>
-              <span className="flex items-center bg-slate-50 border border-slate-200 px-3 py-1.5">成立: 2019-06-11</span>
+              <span className="flex items-center bg-slate-50 border border-slate-200 px-3 py-1.5">成立年限：{Math.floor((Date.now() - new Date('2019-06-11').getTime()) / (365.25 * 24 * 3600 * 1000))}年</span>
             </div>
           </div>
           <div className="flex-shrink-0 flex flex-col items-center justify-center bg-orange-50 px-6 py-4 border border-orange-100 shadow-sm relative overflow-hidden group">

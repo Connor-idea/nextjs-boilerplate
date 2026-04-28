@@ -104,6 +104,7 @@ function SectionGroup({ icon: Icon, label, expanded, onToggle, children }) {
 export default function SystemSidebar({ activeModule, setActiveModule }) {
   const [staffExpanded, setStaffExpanded] = useState(true);
   const [leadsExpanded, setLeadsExpanded] = useState(true);
+  const [financeExpanded, setFinanceExpanded] = useState(true);
 
   return (
     <div className="w-[240px] bg-[#2B303B] flex flex-col h-full z-20 flex-shrink-0 text-slate-300">
@@ -130,7 +131,23 @@ export default function SystemSidebar({ activeModule, setActiveModule }) {
           </SectionGroup>
 
           <NavItem moduleKey="customer" activeModule={activeModule} setActiveModule={setActiveModule} icon={Users2}   label="客户管理" />
-          <NavItem moduleKey="finance"  activeModule={activeModule} setActiveModule={setActiveModule} icon={BarChart3} label="财务管理" />
+
+          <SectionGroup
+            icon={BarChart3}
+            label="财务管理"
+            expanded={financeExpanded}
+            onToggle={() => setFinanceExpanded(!financeExpanded)}
+          >
+            <SubNavItem moduleKey="finance-supplier" activeModule={activeModule} setActiveModule={setActiveModule} label="供应商结算" />
+            <SubNavItem moduleKey="finance-system-fee" activeModule={activeModule} setActiveModule={setActiveModule} label="系统服务费" />
+            <SubNavItem moduleKey="finance-staff-bill" activeModule={activeModule} setActiveModule={setActiveModule} label="员工对账单" />
+            <SubNavItem moduleKey="finance-staff-correct" activeModule={activeModule} setActiveModule={setActiveModule} label="员工账单校正" />
+            <SubNavItem moduleKey="finance-channel-bill" activeModule={activeModule} setActiveModule={setActiveModule} label="渠道对账单" />
+            <SubNavItem moduleKey="finance-channel-correct" activeModule={activeModule} setActiveModule={setActiveModule} label="渠道账单校正" />
+            <SubNavItem moduleKey="finance-customer-correct" activeModule={activeModule} setActiveModule={setActiveModule} label="客户账单校正" />
+            <SubNavItem moduleKey="finance-settle-list" activeModule={activeModule} setActiveModule={setActiveModule} label="结算订单列表" />
+          </SectionGroup>
+
           <NavItem moduleKey="channel"  activeModule={activeModule} setActiveModule={setActiveModule} icon={Briefcase} label="渠道管理" />
 
           <SectionGroup

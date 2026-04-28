@@ -6,6 +6,7 @@ import AITuigkeApp from './modules/AITuigke';
 import ProfileModule from './modules/ProfileModule';
 import AIAssignPage from './modules/AIAssignPage';
 import Placeholder from './modules/Placeholder';
+import SupplierReconciliation from './modules/SupplierReconciliation';
 import Toast from './components/Toast';
 
 /** 应用根组件，负责全局路由、角色状态、Toast 通知及系统消息管理 */
@@ -69,7 +70,14 @@ export default function App() {
         <div className="flex-1 overflow-y-auto">
           {activeModule === 'home' && <Placeholder title="首页" description="欢迎使用靠铺OA系统" />}
           {activeModule === 'customer' && <Placeholder title="客户管理" description="客户管理页面开发中..." />}
-          {activeModule === 'finance' && <Placeholder title="财务管理" description="财务管理页面开发中..." />}
+          {activeModule === 'finance-supplier' && <SupplierReconciliation />}
+          {activeModule === 'finance-system-fee' && <Placeholder title="系统服务费" description="系统服务费页面开发中..." />}
+          {activeModule === 'finance-staff-bill' && <Placeholder title="员工对账单" description="员工对账单页面开发中..." />}
+          {activeModule === 'finance-staff-correct' && <Placeholder title="员工账单校正" description="员工账单校正页面开发中..." />}
+          {activeModule === 'finance-channel-bill' && <Placeholder title="渠道对账单" description="渠道对账单页面开发中..." />}
+          {activeModule === 'finance-channel-correct' && <Placeholder title="渠道账单校正" description="渠道账单校正页面开发中..." />}
+          {activeModule === 'finance-customer-correct' && <Placeholder title="客户账单校正" description="客户账单校正页面开发中..." />}
+          {activeModule === 'finance-settle-list' && <Placeholder title="结算订单列表" description="结算订单列表页面开发中..." />}
           {activeModule === 'channel' && <Placeholder title="渠道管理" description="渠道管理页面开发中..." />}
           {activeModule === 'leads' && (
             <LeadsModule
