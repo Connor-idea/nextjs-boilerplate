@@ -574,6 +574,85 @@ export default function SupplierReconciliation() {
   );
 }
 
+/* ─────────────────────────── 对账单详情页 ─────────────────────────── */
+
+function DetailRow({ label, value, highlight }) {
+  return (
+    <div className="flex items-start py-2.5 border-b border-slate-100 last:border-0">
+      <span className="w-40 flex-shrink-0 text-xs text-slate-500">{label}</span>
+      <span className={`text-sm ${highlight ? 'text-blue-600 font-medium' : 'text-slate-800'}`}>
+        {value ?? '—'}
+      </span>
+    </div>
+  );
+}
+
+function BillDetail({ bill, onBack }) {
+  const fmt = (v) => v ? `¥${Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}` : '—';
+  return (
+    <div className="p-6 bg-slate-50 min-h-full">
+      {/* 顶部导航 */}
+      <div className="flex items-center gap-2 mb-5">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-blue-500 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          返回列表
+        </button>
+        <span className="text-slate-300">/</span>
+        <span className="text-sm text-slate-700 font-medium">对账单详情</span>
+      </div>
+
+      <div className="bg-white rounded-lg border border-slate-200 p-6 mb-4">
+        <h2 className="text-base font-semibold text-slate-800 mb-1">账单编号：
+          <span className="text-blue-500">{bill.billNo}</span>
+        </h2>
+        <p className="text-xs text-slate-400 mb-5">账单类型：{bill.billType}</p>
+
+        <div className="grid grid-cols-2 gap-x-12">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">基本信息</p>
+            <DetailRow label="账单编号" value={bill.billNo} highlight />
+            <DetailRow label="账单类型" value={bill.billType} />
+            <DetailRow label="所属供应商端编号" value={bill.supplierCode} />
+            <DetailRow label="所属供应商端名称" value={bill.supplierName} />
+            <DetailRow label="所属供应商主体全称" value={bill.supplierFullName} />
+            <DetailRow label="订单笔数（笔）" value={bill.orderCount} />
+            <DetailRow label="账单创建时间" value={bill.createTime} />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">金额信息</p>
+            <DetailRow label="应收账款" value={fmt(bill.receivable)} />
+            <DetailRow label="应付账款" value={fmt(bill.payable)} />
+            <DetailRow label="账单总金额" value={fmt(bill.totalAmount)} />
+            <DetailRow label="实际成本价总金额" value={fmt(bill.actualCostTotal)} />
+            <DetailRow label="服务费总金额" value={fmt(bill.serviceFeeTotal)} />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg border border-slate-200 p-6">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">状态 &amp; 时间</p>
+        <div className="grid grid-cols-2 gap-x-12">
+          <div>
+            <DetailRow label="账单开票状态" value={bill.invoiceStatus} />
+            <DetailRow label="账单结算状态" value={bill.settlementStatus} />
+            <DetailRow label="账单开票时间" value={bill.invoiceTime || '—'} />
+            <DetailRow label="账单结算时间" value={bill.settleTime || '—'} />
+          </div>
+          <div>
+            <DetailRow label="服务费开票状态" value={bill.feeInvoiceStatus} />
+            <DetailRow label="服务费结算状态" value={bill.feeSettlementStatus} />
+            <DetailRow label="服务费开票时间" value={bill.feeInvoiceTime || '—'} />
+            <DetailRow label="服务费结算时间" value={bill.feeSettleTime || '—'} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─────────────────────────── 小工具组件 ─────────────────────────── */
 
 function ActionBtn({ label, icon, onClick, variant = 'default', disabled = false }) {
