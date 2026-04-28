@@ -656,29 +656,47 @@ function BillDetail({ bill, onBack }) {
 /* ─────────────────────────── 小工具组件 ─────────────────────────── */
 
 function ActionBtn({ label, icon, onClick, variant = 'default', disabled = false }) {
+  const [tooltip, setTooltip] = React.useState(null); // { x, y }
   const base = 'flex items-center gap-1 text-xs px-3 py-1.5 rounded border transition-colors';
   const enabledStyle = 'border-slate-300 text-slate-600 hover:bg-slate-50 cursor-pointer';
   const disabledStyle = 'border-slate-200 text-slate-300 cursor-not-allowed bg-slate-50';
+
+  const handleMouseEnter = (e) => {
+    if (!disabled) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip({ x: rect.left + rect.width / 2, y: rect.top - 8 });
+  };
+  const handleMouseLeave = () => setTooltip(null);
+
   return (
-    <div className="relative inline-flex group/btn">
+    <>
       <button
         onClick={disabled ? undefined : onClick}
         disabled={disabled}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={`${base} ${disabled ? disabledStyle : enabledStyle}`}
       >
         {icon}
         {label}
       </button>
-      {disabled && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50
-          whitespace-nowrap rounded bg-slate-700 px-2.5 py-1.5 text-xs text-white
-          opacity-0 group-hover/btn:opacity-100 transition-opacity shadow-lg
-          pointer-events-none">
+      {tooltip && disabled && typeof document !== 'undefined' && ReactDOM.createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            left: tooltip.x,
+            top: tooltip.y,
+            transform: 'translate(-50%, -100%)',
+            zIndex: 9999,
+          }}
+          className="whitespace-nowrap rounded bg-slate-700 px-2.5 py-1.5 text-xs text-white shadow-lg pointer-events-none"
+        >
           请选中需要操作的对账单后再进行「{label}」操作
           <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-700" />
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 }
 
