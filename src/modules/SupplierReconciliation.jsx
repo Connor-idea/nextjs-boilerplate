@@ -362,8 +362,8 @@ export default function SupplierReconciliation() {
         <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
           <ActionBtn label="补款调账" onClick={() => {}} />
           <ActionBtn label="退款调账" onClick={() => {}} />
-          <ActionBtn label="批量发起超市结算" onClick={() => {}} />
-          <ActionBtn label="批量董事审批结算" onClick={() => {}} />
+          <ActionBtn label="批量发起服务费完结" onClick={() => {}} />
+          <ActionBtn label="批量审核完结" onClick={() => {}} />
           <div className="ml-auto">
             <ActionBtn
               label="导出"
