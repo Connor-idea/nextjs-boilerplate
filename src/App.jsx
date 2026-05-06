@@ -1,101 +1,127 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import SystemSidebar from './components/SystemSidebar';
 import SystemHeader from './components/SystemHeader';
-import LeadsModule from './modules/LeadsModule';
-import AITuigkeApp from './modules/AITuigke';
-import ProfileModule from './modules/ProfileModule';
-import AIAssignPage from './modules/AIAssignPage';
+import { SubpageNavProvider } from './components/SubpageNavContext';
 import Placeholder from './modules/Placeholder';
-import SupplierReconciliation from './modules/SupplierReconciliation';
 import Toast from './components/Toast';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { getCurrentModule, getPathForModule, getSidebarModuleKey } from './app/moduleRegistry';
+import { useRealtimeSync } from './app/useRealtimeSync';
+import HomeDashboard from './pages/HomeDashboard';
+import LeadsRoutePage from './pages/LeadsRoutePage';
+import AIAssignRoutePage from './pages/AIAssignRoutePage';
+import PitchRoutePage from './pages/PitchRoutePage';
+import SupplierRoutePage from './pages/SupplierRoutePage';
+import ProfileInsightsPage from './pages/ProfileInsightsPage';
+import { fetchBootstrapData, markNotificationsRead } from './store/thunks';
+import {
+  clearToast,
+  closeSidebar,
+  setUserRole,
+  showToast as pushToast,
+  toggleSidebar,
+} from './store/uiSlice';
 
-/** 应用根组件，负责全局路由、角色状态、Toast 通知及系统消息管理 */
 export default function App() {
-  const [activeModule, setActiveModule] = useState('leads');
-  const [userRole, setUserRole] = useState('manager');
-  const [aiAssignLeads, setAiAssignLeads] = useState([]);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState('success');
-  const [systemNotifications, setSystemNotifications] = useState([]);
+  const dispatch = useDispatch();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const userRole = useSelector((state) => state.ui.userRole);
+  const sidebarOpen = useSelector((state) => state.ui.sidebarOpen);
+  const toast = useSelector((state) => state.ui.toast);
+  const notifications = useSelector((state) => state.ui.notifications);
+  const currentModule = getCurrentModule(location.pathname);
+  const activeModule = getSidebarModuleKey(location.pathname);
 
-  /**
-   * 跳转至 AI 智能分配页面，并传入待分配线索列表
-   * @param {Array<Object>} leads - 待分配的线索数组
-   */
-  const navigateToAIAssign = (leads) => {
-    setAiAssignLeads(leads);
-    setActiveModule('ai-assign');
-  };
+  useRealtimeSync();
 
-  /**
-   * 显示全局 Toast 提示，3 秒后自动消失
-   * @param {string} message - 提示内容
-   * @param {'success'|'error'} [type='success'] - 提示类型
-   */
-  const showToast = (message, type = 'success') => {
-    setToastMessage(message);
-    setToastType(type);
-    setTimeout(() => setToastMessage(''), 3000);
-  };
+  useEffect(() => {
+    dispatch(fetchBootstrapData());
+  }, [dispatch]);
 
-  /**
-   * 向系统通知列表追加一条新通知，最多保留 100 条
-   * @param {Object} notification - 通知对象（title、message、targetUser 等）
-   */
-  const pushSystemNotification = (notification) => {
-    const record = {
-      id: Date.now() + Math.floor(Math.random() * 1000),
-      time: new Date().toLocaleString(),
-      unread: true,
-      ...notification
-    };
-    setSystemNotifications((prev) => [record, ...prev].slice(0, 100));
-  };
+  useEffect(() => {
+    dispatch(closeSidebar());
+  }, [dispatch, location.pathname]);
 
-  /** 将所有未读通知标记为已读 */
-  const markAllNotificationsRead = () => {
-    setSystemNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
-  };
+  useEffect(() => {
+    if (!toast.message) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      dispatch(clearToast());
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [dispatch, toast.message]);
+
+  const showToast = useCallback((message, type = 'success') => {
+    dispatch(pushToast({ message, type }));
+  }, [dispatch]);
+
+  const handleNavigateModule = useCallback((moduleKey) => {
+    navigate(getPathForModule(moduleKey));
+  }, [navigate]);
+
+  const handleOpenNotifications = useCallback(() => {
+    dispatch(markNotificationsRead());
+  }, [dispatch]);
 
   return (
-    <div className="flex h-screen bg-slate-50 text-slate-900 font-sans">
-      <SystemSidebar activeModule={activeModule} setActiveModule={setActiveModule} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <SystemHeader
-          userRole={userRole}
-          setUserRole={setUserRole}
-          notifications={systemNotifications}
-          onOpenNotifications={markAllNotificationsRead}
-        />
-        <div className="flex-1 overflow-y-auto">
-          {activeModule === 'home' && <Placeholder title="首页" description="欢迎使用靠铺OA系统" />}
-          {activeModule === 'customer' && <Placeholder title="客户管理" description="客户管理页面开发中..." />}
-          {activeModule === 'finance-supplier' && <SupplierReconciliation />}
-          {activeModule === 'finance-system-fee' && <Placeholder title="系统服务费" description="系统服务费页面开发中..." />}
-          {activeModule === 'finance-staff-bill' && <Placeholder title="员工对账单" description="员工对账单页面开发中..." />}
-          {activeModule === 'finance-staff-correct' && <Placeholder title="员工账单校正" description="员工账单校正页面开发中..." />}
-          {activeModule === 'finance-channel-bill' && <Placeholder title="渠道对账单" description="渠道对账单页面开发中..." />}
-          {activeModule === 'finance-channel-correct' && <Placeholder title="渠道账单校正" description="渠道账单校正页面开发中..." />}
-          {activeModule === 'finance-customer-correct' && <Placeholder title="客户账单校正" description="客户账单校正页面开发中..." />}
-          {activeModule === 'finance-settle-list' && <Placeholder title="结算订单列表" description="结算订单列表页面开发中..." />}
-          {activeModule === 'channel' && <Placeholder title="渠道管理" description="渠道管理页面开发中..." />}
-          {activeModule === 'leads' && (
-            <LeadsModule
-              userRole={userRole}
-              showToast={showToast}
-              onSystemNotify={pushSystemNotification}
-              onNavigateToAIAssign={navigateToAIAssign}
-            />
-          )}
-          {activeModule === 'profile' && <ProfileModule userRole={userRole} />}
-          {activeModule === 'pitch' && <AITuigkeApp userRole={userRole} />}
-          {activeModule === 'ai-assign' && <AIAssignPage showToast={showToast} initialLeads={aiAssignLeads} onBack={() => setActiveModule('leads')} />}
-          {activeModule === 'personal' && <Placeholder title="个人中心" description="个人中心页面开发中..." />}
+    <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans lg:h-screen">
+      <SystemSidebar
+        activeModule={activeModule}
+        setActiveModule={handleNavigateModule}
+        isOpen={sidebarOpen}
+        onClose={() => dispatch(closeSidebar())}
+      />
+
+      <button
+        type="button"
+        aria-label="关闭导航菜单"
+        onClick={() => dispatch(closeSidebar())}
+        className={`fixed inset-0 z-30 bg-slate-950/35 transition-opacity lg:hidden ${
+          sidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+      />
+
+      <SubpageNavProvider>
+        <div className="flex min-w-0 flex-1 flex-col lg:overflow-hidden">
+          <SystemHeader
+            userRole={userRole}
+            setUserRole={(role) => dispatch(setUserRole(role))}
+            notifications={notifications}
+            onOpenNotifications={handleOpenNotifications}
+            onToggleSidebar={() => dispatch(toggleSidebar())}
+            currentModule={currentModule}
+          />
+          <div className="flex-1 min-w-0 overflow-y-auto">
+            <Routes>
+              <Route path="/" element={<HomeDashboard />} />
+              <Route path="/customer" element={<Placeholder title="客户管理" description="客户管理页面开发中..." />} />
+              <Route path="/channel" element={<Placeholder title="渠道管理" description="渠道管理页面开发中..." />} />
+              <Route path="/personal" element={<Placeholder title="个人中心" description="个人中心页面开发中..." />} />
+              <Route path="/sales/leads" element={<LeadsRoutePage userRole={userRole} showToast={showToast} />} />
+              <Route path="/sales/leads/ai-assign" element={<AIAssignRoutePage showToast={showToast} />} />
+              <Route path="/sales/pitch" element={<PitchRoutePage userRole={userRole} />} />
+              <Route path="/people/profile" element={<ProfileInsightsPage />} />
+              <Route path="/finance/supplier" element={<SupplierRoutePage />} />
+              <Route path="/finance/system-fee" element={<Placeholder title="系统服务费" description="系统服务费页面开发中..." />} />
+              <Route path="/finance/staff-bill" element={<Placeholder title="员工对账单" description="员工对账单页面开发中..." />} />
+              <Route path="/finance/staff-correct" element={<Placeholder title="员工账单校正" description="员工账单校正页面开发中..." />} />
+              <Route path="/finance/channel-bill" element={<Placeholder title="渠道对账单" description="渠道对账单页面开发中..." />} />
+              <Route path="/finance/channel-correct" element={<Placeholder title="渠道账单校正" description="渠道账单校正页面开发中..." />} />
+              <Route path="/finance/customer-correct" element={<Placeholder title="客户账单校正" description="客户账单校正页面开发中..." />} />
+              <Route path="/finance/settle-list" element={<Placeholder title="结算订单列表" description="结算订单列表页面开发中..." />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
         </div>
-      </div>
-      <Toast message={toastMessage} type={toastType} />
+      </SubpageNavProvider>
+      <Toast message={toast.message} type={toast.type} />
       <Analytics />
       <SpeedInsights />
     </div>

@@ -4,7 +4,7 @@
  * 包含线索列表、详情、新增、批量导入/OCR、数据清洗、手动/AI 分配等完整功能。
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { 
   Users, Search, Plus, UploadCloud, Bell, ChevronLeft, FileText, Edit, Trash2, 
@@ -16,6 +16,7 @@ import {
   TrendingUp, ShieldCheck, Wand2, Database, AlertTriangle, Filter
 } from 'lucide-react';
 import { MOCK_REP_PERFORMANCE, teamMembers } from '../constants/salesData';
+import SubpageLayout from '../components/SubpageLayout';
 
 /** 用于公司名联想输入的模拟企业名称库 */
 const MOCK_COMPANY_DB = [
@@ -51,8 +52,6 @@ const initialLeads = [
   { id: 1, name: '林晓', company: '北京字节跳动科技有限公司', industry: '人工智能', phone: '138-0013-8000', email: 'linx@company.com', status: '二次分配线索', source: '抖音', date: '2024-02-10', owner: '张三', isSelfAdded: false, score: 99, daysUncontacted: 3, trackStatus: 'pending', contacts: defaultMockContacts, history: [], companyNote: '重点跟进二期项目', qccLastFetchedAt: Date.now() - 10 * 60 * 1000 },
   { id: 11, name: '林晓', company: '北京字节跳动科技有限公司', industry: '人工智能', phone: '138-0013-8000', email: 'linx_2@company.com', status: '新线索', source: '批量导入', date: '2024-03-10', owner: '未分配', isSelfAdded: false, score: null, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 2, name: '李娜', company: '上海腾讯企点科技有限公司', industry: '企业服务', phone: '139-1234-5678', email: 'lina@example.com', status: '新线索', source: '名片录入', date: '2024-02-26', owner: '李四', isSelfAdded: true, score: 95, daysUncontacted: 0, trackStatus: 'completed', contacts: [], history: [], companyNote: '' },
-  { id: 3, name: '王强', company: '深圳大疆创新科技有限公司', industry: '智能制造', phone: '137-9876-5432', email: 'wangqiang@example.com', status: '退回待分配', source: '展会画册', date: '2023-10-20', owner: '未分配', isSelfAdded: false, score: 88, daysUncontacted: 7, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
-  { id: 4, name: '赵敏', company: '杭州阿里巴巴集团有限公司', industry: '电子商务', phone: '136-1111-2222', email: 'zhaomin@example.com', status: '失效线索', source: '小红书', date: '2023-10-15', owner: '王五', isSelfAdded: true, score: 60, daysUncontacted: 15, trackStatus: 'draft', contacts: [], history: [], companyNote: '' },
   { id: 5, name: '钱伟', company: '京东集团', industry: '电子商务', phone: '131-2222-3333', email: 'qianw@example.com', status: '新线索', source: '网络搜索', date: '2024-03-01', owner: '未分配', isSelfAdded: false, score: null, daysUncontacted: 2, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 6, name: '周杰', company: '北京百度网讯科技有限公司', industry: '人工智能', phone: '未知号码', email: 'zhoujie@example.com', status: '异常线索', source: '信息流广告', date: '2024-03-05', owner: '未分配', isSelfAdded: false, score: null, daysUncontacted: 1, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 7, name: '刘涛', company: '华为技术有限公司', industry: '通信电子', phone: '139-6666', email: 'liutao@example.com', status: '退回待分配', source: '网络搜索', date: '2024-03-06', owner: '未分配', isSelfAdded: false, score: 92, daysUncontacted: 5, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
@@ -74,6 +73,10 @@ const EmptyState = ({ text }) => (
     <p className="font-bold">{text}</p>
   </div>
 );
+
+const defaultAssignLogs = [
+  { id: 101, date: '2024-04-07 09:00:00', type: '智能负载均衡', total: 17, details: '李四(10), 孙琦(5), 王五(2), 张三(0)', status: '成功', assignments: [] }
+];
 
 // === 辅助组件：公司联想输入 ===
 function CompanyAutocomplete({ value, onChange, className, placeholder }) {
@@ -111,21 +114,23 @@ function CompanyAutocomplete({ value, onChange, className, placeholder }) {
 }
 
 // === 主程序组件 ===
-export default function LeadsModule({ userRole, showToast, onSystemNotify, onNavigateToAIAssign }) {
+export default function LeadsModule({ userRole, showToast, onSystemNotify, onNavigateToAIAssign, initialLeadsData, initialAssignLogsData, onLeadsChange, onAssignLogsChange }) {
+  const externalLeads = Array.isArray(initialLeadsData) ? initialLeadsData : initialLeads;
+  const externalAssignLogs = Array.isArray(initialAssignLogsData) ? initialAssignLogsData : defaultAssignLogs;
   const [currentView, setCurrentView] = useState('list');
-  const [leads, setLeads] = useState(initialLeads);
+  const [leads, setLeads] = useState(externalLeads);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLead, setSelectedLead] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [pendingCleanupCount, setPendingCleanupCount] = useState(0);
   const currentUserName = '张三';
+  const leadSnapshotRef = useRef(JSON.stringify(externalLeads));
+  const assignLogSnapshotRef = useRef(JSON.stringify(externalAssignLogs));
   
   const [autoAssignConfig, setAutoAssignConfig] = useState({
     enabled: true, mode: 'smart', time: '09:00', limitPerRep: 5, reps: ['张三', '李四', '王五', '孙琦']
   });
-  const [assignLogs, setAssignLogs] = useState([
-    { id: 101, date: '2024-04-07 09:00:00', type: '智能负载均衡', total: 17, details: '李四(10), 孙琦(5), 王五(2), 张三(0)', status: '成功', assignments: [] }
-  ]);
+  const [assignLogs, setAssignLogs] = useState(externalAssignLogs);
   
   /** 计算待清洗项数（播单重复 + 无效电话）
    * @param {Array<Object>} leadList - 线索列表
@@ -154,8 +159,37 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
 
   // 初始化时计算待清洗数
   useEffect(() => {
+    const nextSnapshot = JSON.stringify(externalLeads);
+    if (nextSnapshot !== leadSnapshotRef.current) {
+      leadSnapshotRef.current = nextSnapshot;
+      setLeads(externalLeads);
+    }
+  }, [externalLeads]);
+
+  useEffect(() => {
+    const nextSnapshot = JSON.stringify(externalAssignLogs);
+    if (nextSnapshot !== assignLogSnapshotRef.current) {
+      assignLogSnapshotRef.current = nextSnapshot;
+      setAssignLogs(externalAssignLogs);
+    }
+  }, [externalAssignLogs]);
+
+  useEffect(() => {
+    const nextSnapshot = JSON.stringify(leads);
+    if (nextSnapshot !== leadSnapshotRef.current) {
+      leadSnapshotRef.current = nextSnapshot;
+      onLeadsChange?.(leads);
+    }
     setPendingCleanupCount(calculatePendingCount(leads));
-  }, []);
+  }, [leads, onLeadsChange]);
+
+  useEffect(() => {
+    const nextSnapshot = JSON.stringify(assignLogs);
+    if (nextSnapshot !== assignLogSnapshotRef.current) {
+      assignLogSnapshotRef.current = nextSnapshot;
+      onAssignLogsChange?.(assignLogs);
+    }
+  }, [assignLogs, onAssignLogsChange]);
 
   /**
    * 解析分配原因输入，返回标准化的原因对象
@@ -453,10 +487,11 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
   };
 
   const filteredLeads = leads.filter(l => userRole === 'manager' ? true : (l.owner === currentUserName || l.owner === '未分配'));
+  const isListView = currentView === 'list';
 
   return (
-    <div className="w-full overflow-y-auto custom-scrollbar p-6 md:p-8 bg-[#F8FAFD]">
-      <div className="w-full max-w-[1400px] mx-auto animate-in fade-in duration-300">
+    <div className="page-shell w-full overflow-y-auto custom-scrollbar bg-[#F8FAFD]">
+      <div className={`${isListView ? 'page-shell-wide' : 'w-full'} animate-in fade-in duration-300`}>
         {currentView === 'list' && (
           <LeadListView 
             allLeads={leads} setAllLeads={setLeads}
@@ -733,8 +768,8 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
           </div>
         )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+        <div className="table-shell">
+          <table className="w-full min-w-[980px] text-sm text-left">
             <thead className="bg-slate-50/50 border-b border-slate-100 text-slate-500 text-xs font-semibold">
               <tr>
                 {userRole === 'manager' && (
@@ -813,7 +848,7 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
               </>
             )}
           </div>
-          <div className="flex items-center gap-4 text-xs text-slate-600">
+          <div className="flex flex-col items-stretch gap-3 text-xs text-slate-600 md:flex-row md:flex-wrap md:items-center md:justify-end md:gap-4">
             <div className="flex items-center gap-2">
               <span>每页:</span>
               <select value={itemsPerPage} onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }} className="bg-slate-50 border border-slate-200 px-2 py-1 outline-none focus:border-blue-400 cursor-pointer">
@@ -827,7 +862,7 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
               ))}
               <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)} className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"><ChevronRight size={16} /></button>
             </div>
-            <div className="flex items-center gap-2 border-l border-slate-200 pl-4">
+            <div className="flex items-center gap-2 border-t border-slate-200 pt-3 md:border-l md:border-t-0 md:pl-4 md:pt-0">
               <span>跳至:</span>
               <input type="text" value={jumpPage} onChange={(e) => setJumpPage(e.target.value)} onBlur={() => { const val = Number(jumpPage); if (val >= 1 && val <= totalPages) setCurrentPage(val); setJumpPage(''); }} onKeyDown={(e) => { if (e.key === 'Enter') { const val = Number(jumpPage); if (val >= 1 && val <= totalPages) setCurrentPage(val); setJumpPage(''); } }} className="w-10 h-7 border border-slate-200 outline-none focus:border-blue-400 text-center bg-slate-50 transition-colors" />
               <span>页，共 {displayLeads.length} 条</span>
@@ -839,7 +874,7 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
       {/* 分配 Modal */}
       {showAssignModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center animate-in fade-in duration-200">
-          <div className="bg-white p-8 w-[520px] shadow-2xl scale-in-center flex flex-col border border-slate-100">
+          <div className="flex w-[calc(100vw-1.5rem)] max-w-[520px] flex-col border border-slate-100 bg-white p-6 shadow-2xl scale-in-center sm:p-8">
             <div className="w-14 h-14 bg-blue-50 flex items-center justify-center text-blue-600 mb-6"><UserPlus size={28}/></div>
             <h3 className="text-xl font-bold mb-2 text-slate-800">{requiresReassignReason ? '手动改派线索' : '手动分配线索'}</h3>
             <p className="text-sm text-slate-500 mb-6">您即将处理已选中的 <span className="text-blue-600 font-semibold">{selectedIds.length}</span> 条线索：无负责人线索可直接分配，已分配线索将按改派流程执行。</p>
@@ -883,7 +918,7 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
       {/* 撤回确认 Modal */}
       {revokeConfirmLog && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] flex items-center justify-center animate-in fade-in duration-200">
-          <div className="bg-white p-8 w-[520px] shadow-2xl scale-in-center flex flex-col border border-slate-100">
+          <div className="flex w-[calc(100vw-1.5rem)] max-w-[520px] flex-col border border-slate-100 bg-white p-6 shadow-2xl scale-in-center sm:p-8">
             <div className="w-14 h-14 bg-orange-50 flex items-center justify-center text-orange-600 mb-6"><Undo2 size={28}/></div>
             <h3 className="text-xl font-bold mb-2 text-slate-800">确认撤回本次派发？</h3>
             <p className="text-sm text-slate-500 mb-6">
@@ -906,7 +941,7 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
       {/* 删除 Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center animate-in fade-in duration-200">
-          <div className="bg-white p-8 w-[420px] shadow-2xl scale-in-center border border-slate-100">
+          <div className="w-[calc(100vw-1.5rem)] max-w-[420px] border border-slate-100 bg-white p-6 shadow-2xl scale-in-center sm:p-8">
             <div className="w-14 h-14 bg-red-50 flex items-center justify-center text-red-600 mb-6"><AlertCircle size={28}/></div>
             <h3 className="text-xl font-bold mb-2 text-slate-800">确认删除线索？</h3>
             <p className="text-sm text-slate-500 mb-8 leading-relaxed">您即将删除选定的 <span className="text-red-600 font-semibold">{deleteTargetIds.length}</span> 条线索。删除后数据将无法恢复。</p>
@@ -1111,12 +1146,17 @@ function DataCleaningModal({ leads, setLeads, showToast, onClose }) {
   };
 
   return (
-    <div className="w-full animate-in fade-in duration-300">
+    <SubpageLayout
+      onBack={onClose}
+        breadcrumbs={[
+          { label: '销售线索' },
+          { label: '线索管理', onClick: onClose },
+          { label: '数据清洗' },
+        ]}
+      className="w-full animate-in fade-in duration-300"
+    >
       <div className="bg-white shadow-sm border border-slate-200 overflow-hidden flex flex-col">
         <div className="p-8 border-b border-slate-100 flex flex-col gap-4 bg-white relative">
-          <button onClick={onClose} className="flex items-center text-slate-500 hover:text-blue-600 text-sm font-medium transition-colors">
-            <ChevronLeft size={16} className="mr-1" /> 返回线索列表
-          </button>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-indigo-100 flex items-center justify-center text-indigo-600"><ShieldCheck size={28}/></div>
             <div>
@@ -1212,8 +1252,8 @@ function DataCleaningModal({ leads, setLeads, showToast, onClose }) {
                   {activeTab === 'invalids' && (
                     <div className="space-y-6">
                       {results.invalids.length === 0 ? <EmptyState text="当前线索库联系方式格式良好！" /> : 
-                        <div className="overflow-x-auto border border-rose-100 shadow-sm">
-                          <table className="w-full text-sm text-left">
+                        <div className="table-shell border border-rose-100 shadow-sm">
+                          <table className="w-full min-w-[760px] text-sm text-left">
                             <thead className="bg-rose-50 border-b border-rose-100 text-rose-700 text-xs font-bold">
                               <tr>
                                 <th className="px-6 py-4">公司与联系人</th>
@@ -1293,7 +1333,7 @@ function DataCleaningModal({ leads, setLeads, showToast, onClose }) {
 
       {editingLead && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[220] flex items-center justify-center animate-in fade-in duration-200">
-          <div className="bg-white w-[640px] max-w-[92vw] border border-slate-200 shadow-2xl p-8">
+          <div className="w-[calc(100vw-1.5rem)] max-w-[640px] border border-slate-200 bg-white p-6 shadow-2xl sm:p-8">
             <h3 className="text-xl font-bold text-slate-800 mb-2">编辑线索信息</h3>
             <p className="text-sm text-slate-500 mb-6">支持修改撞单线索信息或手工修正无效联系方式。</p>
 
@@ -1335,13 +1375,31 @@ function DataCleaningModal({ leads, setLeads, showToast, onClose }) {
           </div>
         </div>
       )}
-    </div>
+    </SubpageLayout>
   );
 }
 
 function LeadDetailView({ lead, isEdit, setIsEdit, userRole, onBack, onSave, showToast, leads, setLeads, setSelectedLead, onReturn }) {
   const [form, setForm] = useState({ ...lead });
   useEffect(() => { setForm({ ...lead }); }, [lead]);
+  const hasUnsavedChanges = isEdit && JSON.stringify(form) !== JSON.stringify(lead);
+
+  const confirmDiscardLeadChanges = () => {
+    if (!hasUnsavedChanges) return true;
+    return window.confirm('当前线索详情仍有未保存的编辑内容，确定离开吗？');
+  };
+
+  const handleBack = () => {
+    if (!confirmDiscardLeadChanges()) return;
+    if (isEdit) setIsEdit(false);
+    onBack();
+  };
+
+  const handleCancelEdit = () => {
+    if (!confirmDiscardLeadChanges()) return;
+    setForm({ ...lead });
+    setIsEdit(false);
+  };
 
   const formatFetchTime = (timestamp) => {
     if (!timestamp) return '未抓取';
@@ -1392,18 +1450,26 @@ function LeadDetailView({ lead, isEdit, setIsEdit, userRole, onBack, onSave, sho
   const canReturn = userRole === 'sales' && !lead.isSelfAdded && lead.owner !== '未分配';
 
   return (
-    <div className="max-w-[1400px] mx-auto animate-in fade-in duration-500 relative">
-      <div className="flex justify-between items-center mb-6">
-        <button onClick={onBack} className="flex items-center text-slate-500 hover:text-blue-600 text-sm font-medium transition-colors"><ChevronLeft size={16} className="mr-1" /> 返回线索列表</button>
-        <div className="flex gap-3">
+    <SubpageLayout
+      onBack={handleBack}
+        breadcrumbs={[
+          { label: '销售线索' },
+          { label: '线索管理', onClick: handleBack },
+          { label: '线索详情' },
+        ]}
+      className="page-shell-wide animate-in fade-in duration-500 relative"
+    >
+      <div className="mb-6 flex flex-col gap-3 lg:items-end">
+        <div className="action-cluster lg:justify-end">
+          {isEdit && hasUnsavedChanges && <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">有未保存更改</span>}
           {canReturn && (
-            <button onClick={() => { onReturn(lead.id); onBack(); }} className="px-5 py-2.5 bg-white border border-orange-200 text-orange-600 text-sm font-medium hover:bg-orange-50 flex items-center gap-2 transition-colors shadow-sm"><Undo2 size={16} /> 退回线索池</button>
+            <button onClick={() => { if (!confirmDiscardLeadChanges()) return; onReturn(lead.id); onBack(); }} className="px-5 py-2.5 bg-white border border-orange-200 text-orange-600 text-sm font-medium hover:bg-orange-50 flex items-center gap-2 transition-colors shadow-sm"><Undo2 size={16} /> 退回线索池</button>
           )}
           {canEdit && (
             !isEdit ? (
               <button onClick={() => setIsEdit(true)} className="px-5 py-2.5 bg-white border border-slate-200 text-sm font-medium hover:bg-slate-50 flex items-center gap-2 transition-colors text-slate-700 shadow-sm"><Edit size={16} className="text-blue-600" />编辑线索信息</button>
             ) : (
-              <><button onClick={() => setIsEdit(false)} className="px-6 py-2.5 bg-white border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">取消编辑</button><button onClick={handleSaveEdit} className="px-8 py-2.5 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors">保存更改</button></>
+              <><button onClick={handleCancelEdit} className="px-6 py-2.5 bg-white border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">取消编辑</button><button onClick={handleSaveEdit} className="px-8 py-2.5 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors">保存更改</button></>
             )
           )}
         </div>
@@ -1460,7 +1526,7 @@ function LeadDetailView({ lead, isEdit, setIsEdit, userRole, onBack, onSave, sho
           )}
         </div>
       </div>
-    </div>
+    </SubpageLayout>
   );
 }
 
@@ -1580,7 +1646,7 @@ const ContactsSection = ({ contacts, onUpdateContacts, isEdit, showToast }) => {
         {(contacts || []).map((c) => (
           <div key={c.id} className="p-6 border border-slate-200 relative bg-slate-50/50 hover:border-blue-300 transition-colors">
             <button onClick={() => onUpdateContacts(contacts.filter(item => item.id !== c.id))} className="absolute top-4 right-4 text-slate-400 hover:text-red-500 bg-white p-2 shadow-sm hover:bg-red-50 transition-colors"><Trash2 size={16}/></button>
-            <div className="grid grid-cols-2 gap-5 pr-8">
+            <div className="modal-grid-2 pr-0 sm:pr-8 sm:gap-5">
               <div><label className="block text-xs font-semibold text-slate-500 mb-1.5">姓名 <span className="text-red-500">*</span></label><input value={c.name} onChange={e => handleContactFieldChange(c.id, 'name', e.target.value)} className="w-full bg-white border border-slate-200 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></div>
               <div><label className="block text-xs font-semibold text-slate-500 mb-1.5">职位 / 角色</label><input value={c.position} onChange={e => handleContactFieldChange(c.id, 'position', e.target.value)} className="w-full bg-white border border-slate-200 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" /></div>
               
@@ -1648,13 +1714,13 @@ const ContactsSection = ({ contacts, onUpdateContacts, isEdit, showToast }) => {
 
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-center justify-center animate-in fade-in duration-200">
-          <div className="bg-white rounded-[32px] shadow-2xl w-[600px] max-h-[90vh] overflow-y-auto custom-scrollbar border border-slate-100">
+          <div className="w-[calc(100vw-1.5rem)] max-w-[600px] max-h-[90vh] overflow-y-auto custom-scrollbar rounded-[32px] border border-slate-100 bg-white shadow-2xl">
             <div className="p-6 border-b border-slate-100 bg-white sticky top-0 flex justify-between items-center z-10">
               <h3 className="font-bold text-slate-800 flex items-center text-lg"><UserPlus size={20} className="mr-2 text-blue-600" /> 手工录入联系人名片</h3>
               <button onClick={() => setShowAddModal(false)} className="bg-slate-50 p-2 text-slate-500 hover:bg-slate-100"><X size={20} /></button>
             </div>
             <div className="p-8 space-y-6 bg-white">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="modal-grid-2 sm:gap-6">
                 <div className="col-span-2"><label className="block text-xs font-semibold text-slate-600 mb-2">公司全称</label><CompanyAutocomplete value={formData.companyName} onChange={val => setFormData({...formData, companyName: val})} className="w-full bg-slate-50 border border-slate-200 p-3.5 text-sm outline-none focus:border-blue-500 focus:bg-white transition-all" /></div>
                 <div><label className="block text-xs font-semibold text-slate-600 mb-2">姓名</label><input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3.5 text-sm outline-none focus:border-blue-500" /></div>
                 <div><label className="block text-xs font-semibold text-slate-600 mb-2">职位/头衔</label><input type="text" value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3.5 text-sm outline-none focus:border-blue-500" /></div>
@@ -2037,8 +2103,15 @@ function AddLeadView({ onCancel, onSave, showToast }) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto animate-in fade-in duration-300 pb-20">
-      <button onClick={onCancel} className="flex items-center text-slate-500 hover:text-blue-600 text-sm font-medium transition-colors"><ChevronLeft size={16} className="mr-1" /> 返回线索列表</button>
+    <SubpageLayout
+      onBack={onCancel}
+        breadcrumbs={[
+          { label: '销售线索' },
+          { label: '线索管理', onClick: onCancel },
+          { label: '录入新线索' },
+        ]}
+      className="w-full max-w-6xl animate-in fade-in duration-300 pb-20"
+    >
       
       <div className="bg-white border border-slate-200 overflow-hidden shadow-sm">
         {/* 表单头部 */}
@@ -2187,7 +2260,7 @@ function AddLeadView({ onCancel, onSave, showToast }) {
           </button>
         </div>
       </div>
-    </div>
+    </SubpageLayout>
   );
 }
 
@@ -2455,14 +2528,19 @@ function BatchOcrView({ onCancel, onSaveBatch, showToast }) {
   }, [listFilter, ocrResults, stage]);
 
   return (
-    <div className="w-full animate-in fade-in duration-300">
+    <SubpageLayout
+      onBack={onCancel}
+        breadcrumbs={[
+          { label: '销售线索' },
+          { label: '线索管理', onClick: onCancel },
+          { label: '名片识别' },
+        ]}
+      className="w-full animate-in fade-in duration-300"
+    >
       <div className="bg-white border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-4">
-              <button onClick={onCancel} className="flex items-center text-slate-500 hover:text-blue-600 text-sm font-medium transition-colors w-fit">
-                <ChevronLeft size={16} className="mr-1" /> 返回线索列表
-              </button>
               <div>
                 <h3 className="text-2xl font-bold text-slate-800">名片识别工作台</h3>
                 <p className="text-sm text-slate-500 mt-1">单次最多 10 张，错误数据支持重识别；左图右侧可编辑校对</p>
@@ -2659,7 +2737,7 @@ function BatchOcrView({ onCancel, onSaveBatch, showToast }) {
           </div>
         )}
       </div>
-    </div>
+    </SubpageLayout>
   );
 }
 
@@ -3151,7 +3229,15 @@ function ImportLeadView({ onCancel, onConfirm, onPartialImport, showToast, exist
   }, [currentPage, totalPages]);
 
   return (
-    <div className="w-full animate-in fade-in duration-300">
+    <SubpageLayout
+      onBack={onCancel}
+        breadcrumbs={[
+          { label: '销售线索' },
+          { label: '线索管理', onClick: onCancel },
+          { label: '批量导入' },
+        ]}
+      className="w-full animate-in fade-in duration-300"
+    >
       <div className="flex justify-center mb-4">
         <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-bold">
           <span className={`px-3 py-1 border ${stage === 'upload' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>1 上传文件</span>
@@ -3167,9 +3253,6 @@ function ImportLeadView({ onCancel, onConfirm, onPartialImport, showToast, exist
         <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-emerald-50 to-teal-50">
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-4">
-              <button onClick={onCancel} className="flex items-center text-slate-500 hover:text-blue-600 text-sm font-medium transition-colors w-fit">
-                <ChevronLeft size={16} className="mr-1" /> 返回线索列表
-              </button>
               <div>
                 <h3 className="text-2xl font-bold text-slate-800">批量导入线索工作台</h3>
                 <p className="text-sm text-slate-500 mt-1">支持大批量导入，识别后自动执行格式校验、重复检测和缺失补全</p>
@@ -3263,8 +3346,8 @@ function ImportLeadView({ onCancel, onConfirm, onPartialImport, showToast, exist
                 </div>
               </div>
 
-              <div className="overflow-x-auto border border-slate-200">
-                <table className="w-full text-sm">
+              <div className="table-shell border border-slate-200">
+                <table className="w-full min-w-[720px] text-sm">
                   <thead className="bg-slate-100 sticky top-0">
                     <tr>
                       <th className="px-4 py-3 text-left"><input type="checkbox" checked={pageAllSelected} onChange={(e) => handleToggleSelectAllCurrentPage(e.target.checked)} className="accent-emerald-600" /></th>
@@ -3350,7 +3433,6 @@ function ImportLeadView({ onCancel, onConfirm, onPartialImport, showToast, exist
             {stage === 'review' ? `已选择 ${selectedRows.size} 条可导入数据` : '导入前不展示数据预览，上传后执行识别与校验'}
           </span>
           <div className="flex gap-3">
-            <button onClick={onCancel} className="flex items-center text-slate-500 hover:text-blue-600 text-sm font-medium transition-colors"><ChevronLeft size={16} className="mr-1" /> 返回线索列表</button>
             {stage !== 'upload' && (
               <button
                 onClick={handleImport}
@@ -3363,7 +3445,7 @@ function ImportLeadView({ onCancel, onConfirm, onPartialImport, showToast, exist
             </div>
           </div>
         </div>
-    </div>
+    </SubpageLayout>
   );
 }
 
@@ -3381,12 +3463,17 @@ function AutoAssignView({ onClose, autoAssignConfig, setAutoAssignConfig, assign
   };
 
   return (
-    <div className="w-full animate-in fade-in duration-300">
+    <SubpageLayout
+      onBack={onClose}
+        breadcrumbs={[
+          { label: '销售线索' },
+          { label: '线索管理', onClick: onClose },
+          { label: '自动分配策略' },
+        ]}
+      className="w-full animate-in fade-in duration-300"
+    >
       <div className="bg-white shadow-sm border border-slate-200 overflow-hidden flex flex-col">
         <div className="p-8 border-b border-slate-100 flex flex-col gap-4 bg-white relative">
-          <button onClick={onClose} className="flex items-center text-slate-500 hover:text-blue-600 text-sm font-medium transition-colors">
-            <ChevronLeft size={16} className="mr-1" /> 返回线索列表
-          </button>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-indigo-100 flex items-center justify-center text-indigo-600"><CalendarClock size={28}/></div>
             <div>
@@ -3505,7 +3592,7 @@ function AutoAssignView({ onClose, autoAssignConfig, setAutoAssignConfig, assign
         ) : (
           <div className="flex-1 overflow-y-auto p-8 bg-slate-50 custom-scrollbar">
             <div className="bg-white border border-slate-200 overflow-hidden shadow-sm">
-              <table className="w-full text-sm text-left">
+              <table className="w-full min-w-[780px] text-sm text-left">
                 <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs font-semibold">
                   <tr>
                     <th className="px-6 py-4">派发时间</th>
@@ -3578,7 +3665,7 @@ function AutoAssignView({ onClose, autoAssignConfig, setAutoAssignConfig, assign
                                       <span className="text-[11px] text-slate-500">{items.length} 条</span>
                                     </div>
                                     <div className="overflow-x-auto">
-                                      <table className="w-full text-xs text-left">
+                                      <table className="w-full min-w-[560px] text-xs text-left">
                                         <thead className="text-slate-500 bg-white border-b border-slate-100">
                                           <tr>
                                             <th className="px-4 py-2.5 font-semibold">公司名</th>
@@ -3628,7 +3715,7 @@ function AutoAssignView({ onClose, autoAssignConfig, setAutoAssignConfig, assign
 
         {revokeConfirmLog && (
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] flex items-center justify-center animate-in fade-in duration-200">
-            <div className="bg-white p-8 w-[520px] shadow-2xl scale-in-center flex flex-col border border-slate-100">
+            <div className="flex w-[calc(100vw-1.5rem)] max-w-[520px] flex-col border border-slate-100 bg-white p-6 shadow-2xl scale-in-center sm:p-8">
               <div className="w-14 h-14 bg-orange-50 flex items-center justify-center text-orange-600 mb-6"><Undo2 size={28}/></div>
               <h3 className="text-xl font-bold mb-2 text-slate-800">确认撤回本次派发？</h3>
               <p className="text-sm text-slate-500 mb-6">
@@ -3647,6 +3734,6 @@ function AutoAssignView({ onClose, autoAssignConfig, setAutoAssignConfig, assign
           </div>
         )}
       </div>
-    </div>
+    </SubpageLayout>
   );
 }

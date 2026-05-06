@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, MapPin, Briefcase, Clock, Users, Target, 
-  ChevronLeft, Save, X, Plus, Sparkles, TrendingUp,
+  Save, X, Plus, Sparkles, TrendingUp,
   AlertCircle, Lightbulb, CheckCircle2, ChevronRight, AlertTriangle, Flag,
   Settings, User, Calendar, BarChart2, Activity, Bot, Edit2, Building2, Sliders, Check,
   ChevronDown, CalendarDays, Phone, MessageSquare, Star, Loader2, TrendingDown,
   FileText, MonitorPlay, List, ArrowUpDown, Clock3, Ban, Archive, ShieldAlert, Inbox
 } from 'lucide-react';
+import SubpageLayout from '../components/SubpageLayout';
 
 // --- Mock Data ---
 const initialSalesData = [
@@ -268,6 +269,26 @@ const initialSalesData = [
   }
 ];
 
+function ProfileAvatar({ src, name, className, fallbackTextClassName = 'text-base' }) {
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [src]);
+
+  const fallbackLabel = (name || '?').trim().slice(0, 1) || '?';
+
+  if (!src || imageError) {
+    return (
+      <div className={`${className} flex items-center justify-center border border-slate-100 bg-slate-100 font-semibold text-slate-600 ${fallbackTextClassName}`} aria-label={`${name || '用户'}头像占位`}>
+        {fallbackLabel}
+      </div>
+    );
+  }
+
+  return <img src={src} alt={`${name || '用户'}头像`} className={`${className} border border-slate-100 object-cover`} onError={() => setImageError(true)} />;
+}
+
 // SLA 预警天数阈值配置
 const SLA_LIMITS = { 'A级': 3, 'B级': 7, 'C级': 14, 'D级': 30 };
 
@@ -343,14 +364,7 @@ export default function ProfileModule({ userRole = 'manager' }) {
 
   return (
     <div className="w-full bg-slate-50 text-slate-800 font-sans">
-      {/* 虽然Header使用sticky，但由于父容器overflow-y-auto，sticky会在滚动容器内工作 */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-blue-600 flex items-center justify-center"><TrendingUp className="text-white w-5 h-5" /></div>
-          <h1 className="text-xl font-bold">SalesPro CRM <span className="text-sm font-normal text-slate-500 ml-2">销售画像管理</span></h1>
-        </div>
-      </header>
-      <main className="max-w-[1440px] mx-auto p-4 md:p-6 pb-10">
+      <main className="page-shell-xl p-4 md:p-6 pb-10">
         {view === 'list' ? (
           <SalesList salesList={salesList} onViewDetail={handleViewDetail} />
         ) : (
@@ -396,7 +410,7 @@ function SalesList({ salesList, onViewDetail }) {
           <div key={user.id} className="bg-white border border-slate-200 p-6 hover:border-cyan-300 hover:shadow-md transition-all cursor-pointer relative flex flex-col" onClick={() => onViewDetail(user)}>
             <div className="flex justify-between items-start mb-5">
                <div className="flex items-center gap-4">
-                 <img src={user.avatar} className="w-12 h-12 object-cover border border-slate-100" />
+                 <ProfileAvatar src={user.avatar} name={user.name} className="w-12 h-12" fallbackTextClassName="text-sm" />
                  <div>
                     <h3 className="font-bold text-slate-900 text-base leading-tight mb-1">{user.name}</h3>
                     <span className="text-xs text-slate-400 font-medium">最近活跃</span>
@@ -405,7 +419,7 @@ function SalesList({ salesList, onViewDetail }) {
                <button className="text-slate-300 hover:text-cyan-600 hover:bg-cyan-50 p-1.5transition-colors"><ChevronRight className="w-5 h-5" /></button>
             </div>
             
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="grid grid-cols-1 gap-2 mb-4 sm:grid-cols-2">
                <span className="px-2.5 py-1.5 bg-cyan-50 text-cyan-700 text-xs border border-cyan-100 truncate flex items-center"><Briefcase className="w-3.5 h-3.5 mr-1.5"/>{user.position}</span>
                <span className="px-2.5 py-1.5 bg-slate-100 text-slate-600 text-xs truncate flex items-center"><Clock className="w-3.5 h-3.5 mr-1.5"/>{user.tenure}</span>
                <span className="px-2.5 py-1.5 bg-slate-100 text-slate-600 text-xs truncate flex items-center"><User className="w-3.5 h-3.5 mr-1.5"/>{user.gender} · {user.age}岁</span>
@@ -416,7 +430,7 @@ function SalesList({ salesList, onViewDetail }) {
               <span className="text-slate-400 mr-2 shrink-0 font-medium">核心技能：</span><span className="truncate">{user.skills.join('，')}</span>
             </div>
 
-            <div className="mt-auto pt-4 border-t border-slate-100 grid grid-cols-2 gap-3 text-sm bg-slate-50 p-3.5">
+            <div className="mt-auto grid grid-cols-1 gap-3 border-t border-slate-100 bg-slate-50 p-3.5 pt-4 text-sm sm:grid-cols-2">
                <div className="flex flex-col border-r border-slate-200">
                  <span className="text-slate-400 flex items-center mb-1 text-xs font-medium"><Users className="w-3.5 h-3.5 mr-1.5"/>总客户数</span>
                  <span className="font-bold text-slate-800 text-base">{user.metrics.cumulativeCustomers} <span className="text-xs font-normal text-slate-500">家</span></span>
@@ -753,46 +767,49 @@ function SalesDetail({ user, onBack, onSave }) {
   const monthlyFunnelStages    = buildFunnelStages(baseFunnel, funnelMulti);
 
   return (
-    <div className="bg-white min-h-[85vh] md:rounded-2xl border border-slate-200 shadow-sm animate-in slide-in-from-right-8 duration-300 relative">
-      
-      {/* Header */}
-      <div className="sticky top-[73px] z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 p-6 flex items-center gap-5 md:rounded-t-2xl">
-        <button onClick={onBack} className="p-2 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 transition-colors">
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <div className="w-px h-10 bg-slate-200 hidden md:block"></div>
-        <div className="flex items-center gap-4">
-          <img src={formData.avatar} className="w-14 h-14 border border-slate-100 object-cover" />
-          <div className="flex flex-col justify-center">
-            <div className="flex items-end gap-3 mb-1.5">
-              <h2 className="text-xl font-bold text-slate-900 leading-none">{formData.name}</h2>
-              <span className="text-xs text-slate-500 font-medium">{formData.gender} · {formData.age}岁</span>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 mt-1">
-              <span className="inline-flex items-center px-2 py-0.5 bg-cyan-50 text-cyan-700 text-xsborder border-cyan-100"><Briefcase className="w-3 h-3 mr-1 text-cyan-500"/>{formData.position}</span>
-              <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded"><Clock className="w-3 h-3 mr-1 text-slate-400"/>{formData.tenure}</span>
-              <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded"><MapPin className="w-3 h-3 mr-1 text-slate-400"/>{formData.location}</span>
+    <SubpageLayout
+      onBack={onBack}
+        breadcrumbs={[
+          { label: '员工管理' },
+          { label: '销售画像', onClick: onBack },
+          { label: formData?.name || '销售详情' },
+        ]}
+    >
+      <div className="bg-white min-h-[85vh] md:rounded-2xl border border-slate-200 shadow-sm animate-in slide-in-from-right-8 duration-300 relative">
+        {/* Header */}
+        <div className="border-b border-slate-100 bg-white p-6 md:rounded-t-2xl">
+          <div className="flex items-center gap-4">
+            <ProfileAvatar src={formData.avatar} name={formData.name} className="w-14 h-14" fallbackTextClassName="text-base" />
+            <div className="flex flex-col justify-center">
+              <div className="flex items-end gap-3 mb-1.5">
+                <h2 className="text-xl font-bold text-slate-900 leading-none">{formData.name}</h2>
+                <span className="text-xs text-slate-500 font-medium">{formData.gender} · {formData.age}岁</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                <span className="inline-flex items-center px-2 py-0.5 bg-cyan-50 text-cyan-700 text-xsborder border-cyan-100"><Briefcase className="w-3 h-3 mr-1 text-cyan-500"/>{formData.position}</span>
+                <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded"><Clock className="w-3 h-3 mr-1 text-slate-400"/>{formData.tenure}</span>
+                <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded"><MapPin className="w-3 h-3 mr-1 text-slate-400"/>{formData.location}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="px-6 md:px-8">
-        {/* Tabs Navigation */}
-        <div className="flex space-x-6 md:space-x-8 border-b border-slate-100 mt-4 overflow-x-auto">
-          <button onClick={() => setActiveTab('metrics')} className={`flex items-center pb-4 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'metrics' ? 'border-cyan-500 text-cyan-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            <BarChart2 className="w-4 h-4 mr-2" /> 业绩达成监控
-          </button>
-          <button onClick={() => setActiveTab('analysis')} className={`flex items-center pb-4 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'analysis' ? 'border-cyan-500 text-cyan-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            <Activity className="w-4 h-4 mr-2" /> 跟进情况分析
-          </button>
-          <button onClick={() => setActiveTab('ai')} className={`flex items-center pb-4 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'ai' ? 'border-purple-500 text-purple-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            <Bot className="w-4 h-4 mr-2" /> AI推客逻辑配置
-          </button>
-        </div>
+        <div className="px-6 md:px-8">
+          {/* Tabs Navigation */}
+          <div className="flex space-x-6 md:space-x-8 border-b border-slate-100 mt-4 overflow-x-auto">
+            <button onClick={() => setActiveTab('metrics')} className={`flex items-center pb-4 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'metrics' ? 'border-cyan-500 text-cyan-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+              <BarChart2 className="w-4 h-4 mr-2" /> 业绩达成监控
+            </button>
+            <button onClick={() => setActiveTab('analysis')} className={`flex items-center pb-4 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'analysis' ? 'border-cyan-500 text-cyan-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+              <Activity className="w-4 h-4 mr-2" /> 跟进情况分析
+            </button>
+            <button onClick={() => setActiveTab('ai')} className={`flex items-center pb-4 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${activeTab === 'ai' ? 'border-purple-500 text-purple-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+              <Bot className="w-4 h-4 mr-2" /> AI推客逻辑配置
+            </button>
+          </div>
 
-        {/* Tabs Content */}
-        <div className="py-8 pb-16">
+          {/* Tabs Content */}
+          <div className="py-8 pb-16">
           
           {/* TAB 1: Metrics */}
           {activeTab === 'metrics' && (
@@ -922,7 +939,7 @@ function SalesDetail({ user, onBack, onSave }) {
                 </div>
 
                 {/* 双列漏斗面板 */}
-                <div className="grid grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                   <FunnelPanel
                     title="累计转化分析"
                     subtitle="历史全量数据"
@@ -1346,6 +1363,7 @@ function SalesDetail({ user, onBack, onSave }) {
           )}
         </div>
       </div>
+      </div>
 
       {showTargetModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -1450,7 +1468,7 @@ function SalesDetail({ user, onBack, onSave }) {
         </div>
       )}
 
-    </div>
+    </SubpageLayout>
   );
 }
 
@@ -1604,9 +1622,9 @@ function BurndownChart({ data, capacity, intentList }) {
                 </div>
              )}
            </div>
+          </div>
         </div>
       </div>
-    </div>
   );
 }
 

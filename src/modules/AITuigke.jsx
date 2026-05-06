@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
   CheckCircle2, AlertCircle, Sparkles, Link as LinkIcon, 
   Building2, Calendar, Users, Briefcase, 
@@ -125,7 +125,7 @@ const AIBlock = ({ title, children, icon: Icon = Sparkles }) => (
 // --- 骨架屏加载组件 ---
 const SkeletonLoading = () => {
   return (
-    <div className="max-w-[1400px] mx-auto px-6 pt-6 animate-pulse w-full">
+    <div className="page-shell-wide w-full animate-pulse px-4 pt-4 sm:px-6 sm:pt-6">
       <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div className="flex items-center gap-3">
           <div className="h-4 w-32 bg-slate-200 rounded"></div>
@@ -146,7 +146,7 @@ const SkeletonLoading = () => {
               <div className="h-14 w-20 bg-orange-50 border border-orange-100/50"></div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2">
               <div className="h-12 bg-slate-100"></div>
               <div className="h-12 bg-slate-100"></div>
               <div className="h-12 bg-slate-100 col-span-2"></div>
@@ -155,7 +155,7 @@ const SkeletonLoading = () => {
 
             <div className="h-28 bg-indigo-50/50 mb-6"></div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div className="h-32 bg-slate-50"></div>
               <div className="h-32 bg-red-50/30"></div>
             </div>
@@ -229,23 +229,8 @@ const DirectoryDrawer = ({ isOpen, onClose, leads, currentLeadId, onSelectLead }
     );
   };
 
-  const SkeletonLeadItem = () => (
-    <div className="p-3 border mb-2 bg-white border-slate-100 opacity-60">
-      <div className="flex items-start gap-2.5 animate-pulse">
-        <div className="w-4 h-4 bg-slate-200 mt-0.5 flex-shrink-0"></div>
-        <div className="flex-1 min-w-0">
-          <div className="h-4 bg-slate-200w-3/4 mb-2.5 mt-0.5"></div>
-          <div className="flex justify-between items-center mt-1.5">
-            <div className="h-3 bg-slate-200w-1/3"></div>
-            <div className="h-3 bg-slate-200w-8"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const GroupSection = ({ title, icon: Icon, colorClass, data, showSkeleton = false }) => {
-    if (data.length === 0 && !showSkeleton) return null;
+  const GroupSection = ({ title, icon: Icon, colorClass, data, emptyMessage }) => {
+    if (data.length === 0 && !emptyMessage) return null;
     return (
       <div className="mb-6">
         <div className={`text-xs font-bold mb-3 flex items-center justify-between ${colorClass}`}>
@@ -254,8 +239,13 @@ const DirectoryDrawer = ({ isOpen, onClose, leads, currentLeadId, onSelectLead }
             {title} ({data.length})
           </div>
         </div>
-        {data.map(lead => <LeadItem key={lead.id} lead={lead} />)}
-        {showSkeleton && <SkeletonLeadItem />}
+        {data.length > 0 ? (
+          data.map(lead => <LeadItem key={lead.id} lead={lead} />)
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-4 text-xs leading-5 text-slate-400">
+            {emptyMessage}
+          </div>
+        )}
       </div>
     );
   };
@@ -269,7 +259,7 @@ const DirectoryDrawer = ({ isOpen, onClose, leads, currentLeadId, onSelectLead }
         ></div>
       )}
       
-      <div className={`fixed top-0 right-0 h-full w-[360px] bg-slate-50 shadow-2xl z-[101] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-full max-w-[22rem] bg-slate-50 shadow-2xl z-[101] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-5 bg-white border-b border-slate-200 flex justify-between items-center flex-shrink-0">
           <h2 className="text-base font-bold text-slate-800 flex items-center">
             <ListTodo size={18} className="mr-2 text-blue-600" /> 今日任务线索池
@@ -277,9 +267,52 @@ const DirectoryDrawer = ({ isOpen, onClose, leads, currentLeadId, onSelectLead }
           <button onClick={onClose} className="p-1.5 hover:bg-slate-100 text-slate-500 transition-colors" aria-label="关闭目录"><X size={20} /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-          <GroupSection title="跟进暂存" icon={Clock} colorClass="text-orange-600" data={draftLeads} />
-          <GroupSection title="今日已处理" icon={CheckCircle} colorClass="text-green-600" data={completedLeads} />
-          <GroupSection title="待跟进 / 计划跟进中" icon={Users} colorClass="text-slate-600" data={pendingLeads} showSkeleton={true} />
+          <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold text-slate-700 flex items-center">
+              <Info size={13} className="mr-1.5 text-blue-500" /> 使用提示
+            </p>
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              优先从“待跟进”中选择当前任务；如果信息未整理完，可先回到“跟进暂存”继续补充，已处理记录仅用于复核当天动作。
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+              <div className="border border-slate-100 bg-slate-50 px-2 py-2">
+                <div className="font-semibold text-slate-800">{pendingLeads.length}</div>
+                <div className="mt-1 text-slate-500">待跟进</div>
+              </div>
+              <div className="border border-orange-100 bg-orange-50 px-2 py-2">
+                <div className="font-semibold text-orange-700">{draftLeads.length}</div>
+                <div className="mt-1 text-orange-600">草稿</div>
+              </div>
+              <div className="border border-emerald-100 bg-emerald-50 px-2 py-2">
+                <div className="font-semibold text-emerald-700">{completedLeads.length}</div>
+                <div className="mt-1 text-emerald-600">已处理</div>
+              </div>
+            </div>
+          </div>
+
+          {leads.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                <Frown size={18} />
+              </div>
+              <p className="mt-3 text-sm font-semibold text-slate-700">今日任务池为空</p>
+              <p className="mt-1 text-xs leading-5 text-slate-400">
+                当前没有可切换的线索。可返回上一页重新进入任务池，或等待新的待跟进线索进入本页。
+              </p>
+            </div>
+          ) : (
+            <>
+              <GroupSection title="跟进暂存" icon={Clock} colorClass="text-orange-600" data={draftLeads} />
+              <GroupSection title="今日已处理" icon={CheckCircle} colorClass="text-green-600" data={completedLeads} />
+              <GroupSection
+                title="待跟进 / 计划跟进中"
+                icon={Users}
+                colorClass="text-slate-600"
+                data={pendingLeads}
+                emptyMessage="当前没有待跟进线索，可优先检查草稿是否需要补完，或查看今天已处理记录。"
+              />
+            </>
+          )}
         </div>
       </div>
     </>
@@ -288,11 +321,11 @@ const DirectoryDrawer = ({ isOpen, onClose, leads, currentLeadId, onSelectLead }
 
 // 2. 内部顶部进度条
 const ProgressHeader = ({ total, current, pending }) => {
-  const percentage = useMemo(() => Math.round(((total - pending) / total) * 100), [total, pending]);
+  const percentage = useMemo(() => (total > 0 ? Math.round(((total - pending) / total) * 100) : 0), [total, pending]);
   
   return (
-    <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm px-6 py-4">
-      <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm px-4 py-4 sm:px-6">
+      <div className="page-shell-wide flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="bg-blue-600 text-white w-10 h-10 flex items-center justify-center font-bold text-lg shadow-md ring-4 ring-blue-50">
             {current}
@@ -1015,6 +1048,40 @@ const ActionSection = ({ lead, showToast, onSaveDraft, onOpenDirectory, onSubmit
   
   const [nextPlan, setNextPlan] = useState('');
   const [validationError, setValidationError] = useState('');
+  const hasLead = Boolean(lead);
+
+  const actionGuidance = {
+    convert: {
+      title: '填写跟进时机',
+      body: '当你已经完成电话、微信、会议或拜访后，在这里补齐本次沟通纪要和下一步动作。提交后会自动进入下一条待跟进线索。',
+      recovery: '如果信息还不完整，可以先暂存草稿，稍后从“线索目录”继续补完。',
+    },
+    invalid: {
+      title: '标记无效时机',
+      body: '仅在线索确认无效、联系方式失真或明确不属于目标客户时使用，避免误伤仍有培养价值的客户。',
+      recovery: '如果只是暂时联系不上，请直接关闭抽屉，回到正常跟进或先暂存草稿。',
+    },
+    return: {
+      title: '退回线索池时机',
+      body: '当线索不再适合当前负责人继续跟进时使用，系统会要求二次确认，防止误操作导致线索流失。',
+      recovery: '如果只是需要补充资料或等待客户回复，请不要退回，直接关闭抽屉即可。',
+    },
+  }[actionType];
+
+  const openActionPanel = useCallback((nextAction) => {
+    if (!lead) {
+      showToast('❌ 当前没有可操作的线索，请先从线索目录恢复一条线索');
+      return;
+    }
+
+    setActionType(nextAction);
+    setValidationError('');
+    if (nextAction === 'return') {
+      setConfirmText('');
+      setReturnReason('');
+    }
+    setIsOpen(true);
+  }, [lead, showToast]);
 
   const handleSubmit = useCallback(() => {
     if (actionType === 'convert' && !nextPlan) {
@@ -1056,34 +1123,37 @@ const ActionSection = ({ lead, showToast, onSaveDraft, onOpenDirectory, onSubmit
         </button>
 
         <button 
-          onClick={() => { setActionType('convert'); setValidationError(''); setIsOpen(true); }} 
-          className="p-4 flex flex-col items-center justify-center gap-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all w-24 group"
+          onClick={() => openActionPanel('convert')} 
+          disabled={!hasLead}
+          className={`p-4 flex flex-col items-center justify-center gap-2 transition-all w-24 group ${hasLead ? 'text-slate-600 hover:text-blue-600 hover:bg-blue-50' : 'text-slate-300 bg-slate-50 cursor-not-allowed'}`}
           aria-label="填写跟进"
         >
-          <div className="bg-slate-50 group-hover:bg-blue-100 p-2.5 group-hover:scale-110 transition-transform">
-            <Briefcase size={22} className="text-slate-500 group-hover:text-blue-600" />
+          <div className={`p-2.5 transition-transform ${hasLead ? 'bg-slate-50 group-hover:bg-blue-100 group-hover:scale-110' : 'bg-slate-100'}`}>
+            <Briefcase size={22} className={hasLead ? 'text-slate-500 group-hover:text-blue-600' : 'text-slate-300'} />
           </div>
           <span className="text-xs font-bold text-center">填写跟进</span>
         </button>
         
         <button 
-          onClick={() => { setActionType('invalid'); setValidationError(''); setIsOpen(true); }} 
-          className="p-4 flex flex-col items-center justify-center gap-2 text-slate-600 hover:text-orange-600 hover:bg-orange-50 transition-all w-24 group"
+          onClick={() => openActionPanel('invalid')} 
+          disabled={!hasLead}
+          className={`p-4 flex flex-col items-center justify-center gap-2 transition-all w-24 group ${hasLead ? 'text-slate-600 hover:text-orange-600 hover:bg-orange-50' : 'text-slate-300 bg-slate-50 cursor-not-allowed'}`}
           aria-label="线索无效"
         >
-          <div className="bg-slate-50 group-hover:bg-orange-100 p-2.5 group-hover:scale-110 transition-transform">
-            <AlertCircle size={22} className="text-slate-500 group-hover:text-orange-600" />
+          <div className={`p-2.5 transition-transform ${hasLead ? 'bg-slate-50 group-hover:bg-orange-100 group-hover:scale-110' : 'bg-slate-100'}`}>
+            <AlertCircle size={22} className={hasLead ? 'text-slate-500 group-hover:text-orange-600' : 'text-slate-300'} />
           </div>
           <span className="text-xs font-bold text-center">线索无效</span>
         </button>
         
         <button 
-          onClick={() => { setActionType('return'); setConfirmText(''); setReturnReason(''); setIsOpen(true); }} 
-          className="p-4 flex flex-col items-center justify-center gap-2 text-slate-600 hover:text-red-600 hover:bg-red-50 transition-all w-24 group"
+          onClick={() => openActionPanel('return')} 
+          disabled={!hasLead}
+          className={`p-4 flex flex-col items-center justify-center gap-2 transition-all w-24 group ${hasLead ? 'text-slate-600 hover:text-red-600 hover:bg-red-50' : 'text-slate-300 bg-slate-50 cursor-not-allowed'}`}
           aria-label="退回线索池"
         >
-          <div className="bg-slate-50 group-hover:bg-red-100 p-2.5 group-hover:scale-110 transition-transform">
-            <CornerUpLeft size={22} className="text-slate-500 group-hover:text-red-600" />
+          <div className={`p-2.5 transition-transform ${hasLead ? 'bg-slate-50 group-hover:bg-red-100 group-hover:scale-110' : 'bg-slate-100'}`}>
+            <CornerUpLeft size={22} className={hasLead ? 'text-slate-500 group-hover:text-red-600' : 'text-slate-300'} />
           </div>
           <span className="text-xs font-bold text-center">退回线索池</span>
         </button>
@@ -1096,7 +1166,7 @@ const ActionSection = ({ lead, showToast, onSaveDraft, onOpenDirectory, onSubmit
         ></div>
       )}
 
-      <div className={`fixed top-0 right-0 h-full w-[480px] sm:w-[540px] bg-white shadow-2xl z-[150] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-full max-w-[540px] bg-white shadow-2xl z-[150] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         
         <div className={`bg-gradient-to-r ${actionType === 'convert' ? 'from-blue-600 to-indigo-600' : actionType === 'invalid' ? 'from-orange-500 to-red-500' : 'from-red-600 to-rose-600'} p-5 text-white flex justify-between items-center flex-shrink-0`}>
           <h2 className="text-lg font-bold flex items-center">
@@ -1106,7 +1176,32 @@ const ActionSection = ({ lead, showToast, onSaveDraft, onOpenDirectory, onSubmit
         </div>
         
         <div className="p-6 overflow-y-auto flex-1 bg-slate-50 custom-scrollbar">
-          
+          {!hasLead ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-10 text-center animate-in fade-in">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                <Frown size={20} />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-slate-800">当前没有可处理线索</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                可能是当前任务已经处理完成，或上下文还没恢复。先打开线索目录选择一条草稿或待跟进线索，再继续当前操作。
+              </p>
+              <button
+                onClick={() => { setIsOpen(false); onOpenDirectory(); }}
+                className="mt-6 inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                <ListTodo size={14} /> 打开线索目录
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className={`mb-6 border px-4 py-4 ${actionType === 'convert' ? 'bg-blue-50/70 border-blue-100' : actionType === 'invalid' ? 'bg-orange-50 border-orange-100' : 'bg-red-50 border-red-100'}`}>
+                <p className={`text-sm font-semibold flex items-center ${actionType === 'convert' ? 'text-blue-800' : actionType === 'invalid' ? 'text-orange-800' : 'text-red-800'}`}>
+                  <Info size={14} className="mr-2" /> {actionGuidance.title}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{actionGuidance.body}</p>
+                <p className="mt-2 text-xs leading-5 text-slate-500">恢复方式：{actionGuidance.recovery}</p>
+              </div>
+
           {actionType === 'invalid' ? (
             <div className="space-y-6 animate-in fade-in">
               <div className="bg-white p-6 border border-slate-200 shadow-sm space-y-6">
@@ -1252,6 +1347,8 @@ const ActionSection = ({ lead, showToast, onSaveDraft, onOpenDirectory, onSubmit
               </div>
             </div>
           )}
+            </>
+          )}
         </div>
         
         <div className="p-5 bg-white border-t border-slate-200 flex justify-end gap-3 flex-shrink-0">
@@ -1261,19 +1358,19 @@ const ActionSection = ({ lead, showToast, onSaveDraft, onOpenDirectory, onSubmit
                 取消
               </button>
               <button 
-                disabled={confirmText !== '退回线索池'} 
+                disabled={!hasLead || confirmText !== '退回线索池'} 
                 onClick={handleReturnConfirm}
-                className={`px-8 py-2.5 text-sm font-bold text-white shadow-lg transition-all ${confirmText === '退回线索池' ? 'bg-red-600 hover:bg-red-700 shadow-red-200/50 hover:-translate-y-0.5' : 'bg-red-300 cursor-not-allowed opacity-70'}`}
+                className={`px-8 py-2.5 text-sm font-bold text-white shadow-lg transition-all ${hasLead && confirmText === '退回线索池' ? 'bg-red-600 hover:bg-red-700 shadow-red-200/50 hover:-translate-y-0.5' : 'bg-red-300 cursor-not-allowed opacity-70'}`}
               >
                 执行退回
               </button>
             </>
           ) : (
             <>
-              <button onClick={handleSaveDraftClick} className="px-6 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">
+              <button onClick={handleSaveDraftClick} disabled={!hasLead} className={`px-6 py-2.5 text-sm font-medium border transition-colors ${hasLead ? 'text-slate-600 bg-white border-slate-300 hover:bg-slate-50' : 'text-slate-300 bg-slate-50 border-slate-200 cursor-not-allowed'}`}>
                 暂存草稿
               </button>
-              <button onClick={handleSubmit} className={`px-8 py-2.5 text-sm font-bold text-white shadow-lg transition-all ${actionType === 'convert' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200/50' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-200/50'}`}>
+              <button onClick={handleSubmit} disabled={!hasLead} className={`px-8 py-2.5 text-sm font-bold text-white shadow-lg transition-all ${!hasLead ? 'bg-slate-300 cursor-not-allowed shadow-none' : actionType === 'convert' ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200/50' : 'bg-orange-500 hover:bg-orange-600 shadow-orange-200/50'}`}>
                 提交 / 下一条
               </button>
             </>
@@ -1292,9 +1389,11 @@ const ActionSection = ({ lead, showToast, onSaveDraft, onOpenDirectory, onSubmit
  * 内部自管 Toast 状态，不依赖父组件 showToast 回调。
  */
 
-export default function AITuigkeApp({ userRole = 'manager' }) {
-  const [leads, setLeads] = useState(initialLeads);
-  const [currentLeadId, setCurrentLeadId] = useState(initialLeads[0].id);
+export default function AITuigkeApp({ userRole = 'manager', initialLeadsData, onLeadsChange }) {
+  const externalLeads = Array.isArray(initialLeadsData) ? initialLeadsData : initialLeads;
+  const leadSnapshotRef = useRef(JSON.stringify(externalLeads));
+  const [leads, setLeads] = useState(externalLeads);
+  const [currentLeadId, setCurrentLeadId] = useState(externalLeads[0]?.id || null);
   const [isDirectoryOpen, setIsDirectoryOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
@@ -1305,6 +1404,14 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    const nextSnapshot = JSON.stringify(externalLeads);
+    if (nextSnapshot !== leadSnapshotRef.current) {
+      leadSnapshotRef.current = nextSnapshot;
+      setLeads(externalLeads);
+    }
+  }, [externalLeads]);
+
   /** 显示 Toast 提示
    * @param {string} msg - 提示内容
    * @param {'success'|'error'|'loading'} [type='success'] - 提示类型
@@ -1314,7 +1421,25 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
     setToastType(type);
   }, []);
   
+  const pendingLeads = useMemo(() => leads.filter(l => l.status === 'pending'), [leads]);
+  const draftLeads = useMemo(() => leads.filter(l => l.status === 'draft'), [leads]);
+  const completedLeads = useMemo(() => leads.filter(l => l.status === 'completed'), [leads]);
   const currentLead = useMemo(() => leads.find(l => l.id === currentLeadId), [leads, currentLeadId]);
+  const fallbackLead = pendingLeads[0] || draftLeads[0] || completedLeads[0] || null;
+
+  useEffect(() => {
+    if (!currentLead && fallbackLead && currentLeadId !== fallbackLead.id) {
+      setCurrentLeadId(fallbackLead.id);
+    }
+  }, [currentLead, fallbackLead, currentLeadId]);
+
+  useEffect(() => {
+    const nextSnapshot = JSON.stringify(leads);
+    if (nextSnapshot !== leadSnapshotRef.current) {
+      leadSnapshotRef.current = nextSnapshot;
+      onLeadsChange?.(leads);
+    }
+  }, [leads, onLeadsChange]);
 
   /** 将指定线索标记为草稿状态
    * @param {string} id - 线索 ID
@@ -1364,6 +1489,17 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
     }, 600);
   }, [currentLeadId]);
 
+  const handleRestoreLeadContext = useCallback(() => {
+    if (!fallbackLead) {
+      setIsDirectoryOpen(true);
+      return;
+    }
+
+    setCurrentLeadId(fallbackLead.id);
+    setIsLoading(false);
+    showToast(`✨ 已恢复到 ${fallbackLead.name}`);
+  }, [fallbackLead, showToast]);
+
   /**
    * 处理线索提交成功：标记当前线索已完成，自动迟延切换到下一条待跟进线索
    * @param {'submit'|'invalid'|'return'} type - 提交类型
@@ -1382,8 +1518,10 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
       const nextPending = leads.find(l => l.id !== currentLeadId && l.status === 'pending');
       if (nextPending) {
         setCurrentLeadId(nextPending.id);
+        showToast('✨ 新的线索已就绪', 'success');
+      } else {
+        showToast('🎯 今日待跟进线索已处理完成，可打开线索目录查看草稿或已处理记录', 'success');
       }
-      showToast('✨ 新的线索已就绪', 'success');
       setIsLoading(false);
     }, 1500); 
   }, [currentLeadId, leads, showToast]);
@@ -1407,44 +1545,126 @@ export default function AITuigkeApp({ userRole = 'manager' }) {
               {isLoading ? (
                 <SkeletonLoading />
               ) : (
-                <div className="max-w-[1400px] mx-auto px-6 pt-6">
-                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" key={currentLeadId}>
-                    <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 text-slate-500 text-sm">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="font-mono text-slate-700 font-medium">线索 ID: #{currentLeadId}</span>
-                        <span className="text-slate-300">|</span>
-                        <span className="flex items-center text-slate-600 font-medium">
-                          <LinkIcon size={14} className="mr-1.5 text-slate-400" />
-                          线索来源：{currentLead?.source || '全网企业公开库抓取'}
-                        </span>
-                        {currentLead?.status === 'draft' && <span className="bg-orange-100 text-orange-600 px-2 py-0.5text-xs font-bold border border-orange-200 ml-2">草稿暂存中</span>}
-                        {currentLead?.daysUncontacted > 0 && (
-                          <span className={`px-2 py-0.5text-xs font-bold border ml-2 ${currentLead.daysUncontacted >= 3 ? 'bg-red-100 text-red-600 border-red-200' : 'bg-slate-200 text-slate-600 border-slate-300'}`}>
-                            {currentLead.daysUncontacted} 天未跟进
-                          </span>
-                        )}
+                <div className="page-shell-wide px-4 pt-4 sm:px-6 sm:pt-6">
+                  <div className="mb-4 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm sm:p-5">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="max-w-2xl">
+                        <p className="text-xs font-semibold text-blue-700 flex items-center">
+                          <Info size={13} className="mr-1.5" /> 本页使用提示
+                        </p>
+                        <p className="mt-2 text-sm text-slate-700">
+                          先核对公司信息与联系人，再从右侧完成跟进、标记无效或退回线索池。若资料不完整，可先暂存草稿，稍后从线索目录继续补完。
+                        </p>
                       </div>
-                      <span className="flex items-center text-slate-400"><RefreshCw size={12} className="mr-1"/>抓取更新时间: 10分钟前</span>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-                      <div className="xl:col-span-7">
-                        <CompanyInfoSection 
-                          lead={currentLead} 
-                          showToast={showToast}
-                          onAddCompanyNote={handleAddCompanyNote}
-                          onAddHistoryRecord={(record) => handleAddHistoryRecord(currentLeadId, record)}
-                        />
-                        <FollowUpHistorySection history={currentLead?.history} />
-                      </div>
-                      <div className="xl:col-span-5">
-                        <ContactsSection 
-                          showToast={showToast} 
-                          onAddHistoryRecord={(record) => handleAddHistoryRecord(currentLeadId, record)} 
-                        />
+                      <div className="grid grid-cols-3 gap-2 text-center text-xs sm:min-w-[18rem]">
+                        <div className="border border-slate-100 bg-slate-50 px-3 py-3">
+                          <div className="font-semibold text-slate-800">{pendingLeads.length}</div>
+                          <div className="mt-1 text-slate-500">待跟进</div>
+                        </div>
+                        <div className="border border-orange-100 bg-orange-50 px-3 py-3">
+                          <div className="font-semibold text-orange-700">{draftLeads.length}</div>
+                          <div className="mt-1 text-orange-600">草稿</div>
+                        </div>
+                        <div className="border border-emerald-100 bg-emerald-50 px-3 py-3">
+                          <div className="font-semibold text-emerald-700">{completedLeads.length}</div>
+                          <div className="mt-1 text-emerald-600">已处理</div>
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  {!leads.length ? (
+                    <div className="page-card border-dashed border-slate-300 px-6 py-12 text-center">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                        <Frown size={20} />
+                      </div>
+                      <h3 className="mt-4 text-lg font-semibold text-slate-800">今天还没有待处理线索</h3>
+                      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
+                        当前任务池为空，本页没有可继续跟进的对象。可返回上一页重新进入任务池，或等待新的线索进入今日计划。
+                      </p>
+                    </div>
+                  ) : !currentLead ? (
+                    <div className="page-card border-dashed border-slate-300 px-6 py-12 text-center">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                        <AlertCircle size={20} />
+                      </div>
+                      <h3 className="mt-4 text-lg font-semibold text-slate-800">当前线索上下文已丢失</h3>
+                      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
+                        可能是刚完成上一条线索，或当前线索已不在活动任务中。你可以恢复到下一条可用线索，或打开线索目录手动选择草稿和已处理记录。
+                      </p>
+                      <div className="mt-6 action-cluster justify-center">
+                        {fallbackLead && (
+                          <button
+                            onClick={handleRestoreLeadContext}
+                            className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                          >
+                            <RefreshCw size={14} /> 恢复到可用线索
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setIsDirectoryOpen(true)}
+                          className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 transition-colors"
+                        >
+                          <ListTodo size={14} /> 打开线索目录
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" key={currentLeadId}>
+                      {pendingLeads.length === 0 && (
+                        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <p className="font-semibold">今日待跟进线索已清空</p>
+                              <p className="mt-1 text-emerald-700/80">你可以继续检查草稿是否需要补完，或在目录中复核今天已处理的线索记录。</p>
+                            </div>
+                            <button
+                              onClick={() => setIsDirectoryOpen(true)}
+                              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-100/60 transition-colors"
+                            >
+                              <ListTodo size={14} /> 查看线索目录
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 text-slate-500 text-sm">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="font-mono text-slate-700 font-medium">线索 ID: #{currentLeadId}</span>
+                          <span className="text-slate-300">|</span>
+                          <span className="flex items-center text-slate-600 font-medium">
+                            <LinkIcon size={14} className="mr-1.5 text-slate-400" />
+                            线索来源：{currentLead?.source || '全网企业公开库抓取'}
+                          </span>
+                          {currentLead?.status === 'draft' && <span className="bg-orange-100 text-orange-600 px-2 py-0.5text-xs font-bold border border-orange-200 ml-2">草稿暂存中</span>}
+                          {currentLead?.daysUncontacted > 0 && (
+                            <span className={`px-2 py-0.5text-xs font-bold border ml-2 ${currentLead.daysUncontacted >= 3 ? 'bg-red-100 text-red-600 border-red-200' : 'bg-slate-200 text-slate-600 border-slate-300'}`}>
+                              {currentLead.daysUncontacted} 天未跟进
+                            </span>
+                          )}
+                        </div>
+                        <span className="flex items-center text-slate-400"><RefreshCw size={12} className="mr-1"/>抓取更新时间: 10分钟前</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                        <div className="xl:col-span-7">
+                          <CompanyInfoSection 
+                            lead={currentLead} 
+                            showToast={showToast}
+                            onAddCompanyNote={handleAddCompanyNote}
+                            onAddHistoryRecord={(record) => handleAddHistoryRecord(currentLeadId, record)}
+                          />
+                          <FollowUpHistorySection history={currentLead?.history} />
+                        </div>
+                        <div className="xl:col-span-5">
+                          <ContactsSection 
+                            showToast={showToast} 
+                            onAddHistoryRecord={(record) => handleAddHistoryRecord(currentLeadId, record)} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

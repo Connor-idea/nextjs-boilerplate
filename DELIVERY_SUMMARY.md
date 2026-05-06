@@ -6,6 +6,27 @@
 
 ## 🗒 功能变更记录
 
+### 2026-04-28（续3）
+| 变更内容 | 涉及文件 |
+|---|---|
+| 供应商侧开票/结算凭证改为只读 VoucherPreview（状态+时间+凭证预览） | `src/modules/SupplierReconciliation.jsx` |
+| mock 数据补充 supplierInvoiceVouchers / supplierSettleVouchers 模拟已上传凭证 | `src/modules/SupplierReconciliation.jsx` |
+| 我方财务侧保留 FileUploadArea 上传功能不变 | `src/modules/SupplierReconciliation.jsx` |
+
+### 2026-04-28（续2）
+| 变更内容 | 涉及文件 |
+|---|---|
+| 对账单详情页改为双侧布局：供应商方（橙色标识）+ 我方财务（蓝色标识） | `src/modules/SupplierReconciliation.jsx` |
+| mock 数据补充我方财务字段：ourInvoiceStatus/Time、ourSettleStatus/Time | `src/modules/SupplierReconciliation.jsx` |
+| 两侧各含开票信息（状态+时间+凭证上传）和结算信息（状态+时间+凭证上传） | `src/modules/SupplierReconciliation.jsx` |
+
+### 2026-04-28（续）
+| 变更内容 | 涉及文件 |
+|---|---|
+| 重建对账单详情页：基本信息/账单开票信息/账单结算信息三分区布局 | `src/modules/SupplierReconciliation.jsx` |
+| 账单开票凭证 & 结算凭证文件上传区（≤5文件、单文件≤2MB、支持doc/docx/ppt等） | `src/modules/SupplierReconciliation.jsx` |
+| 表格"查看详情"按钮绑定 setDetailBill(bill) | `src/modules/SupplierReconciliation.jsx` |
+
 ### 2026-04-28
 | 变更内容 | 涉及文件 |
 |---|---|

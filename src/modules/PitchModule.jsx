@@ -3,10 +3,10 @@ import { Sparkles, Users, History } from 'lucide-react';
 
 export default function PitchModule({ showToast }) {
   return (
-    <main className="flex-1 overflow-y-auto custom-scrollbar p-6">
-      <div className="max-w-[1400px] mx-auto animate-in fade-in duration-300">
-        <div className="bg-white shadow-sm border border-slate-200 overflow-hidden p-8">
-          <div className="flex items-center gap-4 mb-6">
+    <main className="page-shell flex-1 overflow-y-auto custom-scrollbar">
+      <div className="page-shell-wide animate-in fade-in duration-300">
+        <div className="page-card overflow-hidden p-6 sm:p-8">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="w-14 h-14 bg-purple-100 flex items-center justify-center text-purple-600">
               <Sparkles size={28} />
             </div>
@@ -48,7 +48,7 @@ export default function PitchModule({ showToast }) {
             </div>
           </div>
 
-          <div className="mt-8 p-6 bg-slate-50 border border-slate-100">
+          <div className="mt-8 border border-slate-100 bg-slate-50 p-4 sm:p-6">
             <p className="text-sm text-slate-600 text-center">
               💡 AI 推客功能已准备就绪。在左侧边栏选择 "AI 推客" 模块开始使用完整的AI驱动营销工具。
             </p>
