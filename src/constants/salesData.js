@@ -15,14 +15,10 @@ import { BatteryFull, BatteryMedium, BatteryLow } from 'lucide-react';
  * color: Tailwind 样式类，用于状态标签显示
  */
 export const MOCK_REP_PERFORMANCE = {
-  '张三': { intent: 32, label: '饱和', icon: BatteryFull,   color: 'text-red-600 bg-red-50 border-red-200' },
-  '李四': { intent: 5,  label: '空闲', icon: BatteryLow,   color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '王五': { intent: 18, label: '正常', icon: BatteryMedium, color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  '赵六': { intent: 8,  label: '空闲', icon: BatteryLow,   color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '刘洋': { intent: 28, label: '偏高', icon: BatteryMedium, color: 'text-orange-700 bg-orange-50 border-orange-200' },
-  '孙琦': { intent: 2,  label: '空闲', icon: BatteryLow,   color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  '周七': { intent: 15, label: '正常', icon: BatteryMedium, color: 'text-blue-700 bg-blue-50 border-blue-200' },
-  '吴八': { intent: 22, label: '偏高', icon: BatteryMedium, color: 'text-orange-700 bg-orange-50 border-orange-200' },
+  '戴贤亮': { intent: 16, label: '正常', icon: BatteryMedium, color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  '蔡文嘉': { intent: 6,  label: '空闲', icon: BatteryLow, color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  '邱鑫': { intent: 14, label: '正常', icon: BatteryMedium, color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  '邵岩': { intent: 9,  label: '空闲', icon: BatteryLow, color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
 };
 
 /** 团队成员姓名列表，按 MOCK_REP_PERFORMANCE 键顺序排列 */

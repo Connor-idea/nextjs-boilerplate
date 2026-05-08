@@ -474,10 +474,10 @@ export default function SupplierReconciliation({ initialBillsData, onBillsChange
       </div>
 
       {/* ── 操作按钮 & 表格 ── */}
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+      <div className="console-table-section rounded-none">
 
         {/* 操作按钮行 */}
-        <div className="action-cluster border-b border-slate-100 px-4 py-3">
+        <div className="action-cluster console-table-toolbar">
           <ActionBtn label="补款调账" disabled={!hasSelection} onClick={() => {}} />
           <ActionBtn label="退款调账" disabled={!hasSelection} onClick={() => {}} />
           <ActionBtn label="批量发起服务费完结" disabled={!hasSelection} onClick={() => {}} />
@@ -492,8 +492,8 @@ export default function SupplierReconciliation({ initialBillsData, onBillsChange
           </div>
         </div>
 
-        <div className="table-shell">
-          <table className="w-full min-w-[1750px] text-sm text-left border-collapse">
+        <div className="table-shell table-shell-dense">
+          <table className="console-table console-table-dense w-full min-w-[1750px] text-sm text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 text-slate-500 text-xs">
                 <th className="px-3 py-3 w-10">
@@ -524,7 +524,7 @@ export default function SupplierReconciliation({ initialBillsData, onBillsChange
                 <th className="px-3 py-3 whitespace-nowrap font-medium">账单结算时间</th>
                 <th className="px-3 py-3 whitespace-nowrap font-medium">服务费开票时间</th>
                 <th className="px-3 py-3 whitespace-nowrap font-medium">服务费结算时间</th>
-                <th className="px-3 py-3 whitespace-nowrap font-medium sticky right-0 bg-slate-50 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] z-10">操作</th>
+                <th className="console-table-sticky-right px-3 py-3 whitespace-nowrap font-medium">操作</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -586,7 +586,7 @@ export default function SupplierReconciliation({ initialBillsData, onBillsChange
                   <td className="px-3 py-3 whitespace-nowrap text-xs text-slate-400">{bill.settleTime || '—'}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-xs text-slate-400">{bill.feeInvoiceTime || '—'}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-xs text-slate-400">{bill.feeSettleTime || '—'}</td>
-                  <td className={`px-3 py-3 whitespace-nowrap sticky right-0 shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.06)] z-10 transition-colors ${selectedIds.has(bill.id) ? 'bg-blue-50/40' : 'bg-white group-hover:bg-slate-50'}`}>
+                  <td className={`console-table-sticky-right px-3 py-3 whitespace-nowrap transition-colors ${selectedIds.has(bill.id) ? 'bg-console-primary-soft' : 'group-hover:bg-console-surface-alt'}`}>
                     <div className="flex items-center gap-3">
                       <button onClick={() => setDetailBill(bill)} className="text-blue-500 hover:text-blue-700 text-xs font-medium transition-colors">
                         查看详情
@@ -1997,8 +1997,8 @@ function BillOrderSection({ bill }) {
             导出
           </button>
         </div>
-        <div className="table-shell">
-          <table className="w-full min-w-[1800px] whitespace-nowrap text-sm">
+        <div className="table-shell table-shell-dense">
+          <table className="console-table console-table-dense w-full min-w-[1800px] whitespace-nowrap text-sm">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 <th className="w-10 px-4 py-3 text-center">

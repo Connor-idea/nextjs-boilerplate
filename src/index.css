@@ -2,21 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --md-sys-color-primary: #4286fd;
+    --md-sys-color-on-primary: #ffffff;
+    --md-sys-color-primary-container: #eaf3ff;
+    --md-sys-color-on-primary-container: #0f3f8f;
+    --md-sys-color-secondary: #3b82f6;
+    --md-sys-color-on-secondary: #ffffff;
+    --md-sys-color-secondary-container: #edf4ff;
+    --md-sys-color-on-secondary-container: #0f3f8f;
+    --md-sys-color-tertiary: #1f2329;
+    --md-sys-color-tertiary-container: #f2f3f5;
+    --md-sys-color-on-tertiary-container: #1f2329;
+    --md-sys-color-error: #ba1a1a;
+    --md-sys-color-error-container: #ffdad6;
+    --md-sys-color-on-error-container: #410002;
+    --md-sys-color-surface: #f5f7fa;
+    --md-sys-color-surface-container-lowest: #ffffff;
+    --md-sys-color-surface-container-low: #ffffff;
+    --md-sys-color-surface-container: #fafbfc;
+    --md-sys-color-surface-container-high: #f7f8fa;
+    --md-sys-color-surface-container-highest: #f2f3f5;
+    --md-sys-color-on-surface: #1f2329;
+    --md-sys-color-on-surface-variant: #4e5969;
+    --md-sys-color-outline: #c9cdd4;
+    --md-sys-color-outline-variant: #e5e6eb;
+    --md-elevation-1: 0 1px 2px rgba(31, 35, 41, 0.04);
+    --md-elevation-2: 0 4px 10px rgba(31, 35, 41, 0.06);
+    --md-elevation-3: 0 8px 20px rgba(31, 35, 41, 0.08);
+    --md-state-hover: rgba(66, 134, 253, 0.06);
+    --md-state-focus: rgba(66, 134, 253, 0.18);
+    --md-app-color-success: #146c2e;
+    --md-app-color-success-container: #c4efcb;
+    --md-app-color-warning: #8f4e00;
+    --md-app-color-warning-container: #ffddb5;
+  }
+
+  html {
+    min-height: 100%;
+    background: var(--md-sys-color-surface);
+  }
+
+  body {
+    min-height: 100%;
+    color: var(--md-sys-color-on-surface);
+    font-family: 'Alibaba PuHuiTi 3.0', 'Alibaba PuHuiTi', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: var(--md-sys-color-surface);
+  }
+
+  .font-sans {
+    font-family: 'Alibaba PuHuiTi 3.0', 'Alibaba PuHuiTi', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif !important;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(66, 134, 253, 0.18);
+    color: var(--md-sys-color-on-surface);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--md-state-focus);
+  }
+
+  .lucide {
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
 @layer components {
   .page-shell {
-    @apply w-full px-4 py-4 sm:px-6 sm:py-6 lg:px-6;
+    @apply w-full px-4 py-4 sm:px-5 sm:py-5 lg:px-6;
   }
 
   .page-shell-wide {
-    @apply mx-auto w-full max-w-[1400px];
+    @apply mx-auto w-full max-w-console;
   }
 
   .page-shell-xl {
-    @apply mx-auto w-full max-w-[1440px];
+    @apply mx-auto w-full max-w-console-xl;
   }
 
   .page-card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    @apply rounded-console border border-console-border bg-console-surface shadow-none;
+  }
+
+  .page-card:hover {
+    box-shadow: none;
   }
 
   .metric-grid {
@@ -32,15 +120,462 @@
   }
 
   .table-shell {
-    @apply overflow-x-auto overscroll-x-contain;
+    @apply overflow-x-auto overscroll-x-contain rounded-console border border-console-border bg-console-surface shadow-none;
+  }
+
+  .table-shell.table-shell-dense {
+    @apply rounded-none;
   }
 
   .table-shell > table {
     @apply min-w-[920px];
   }
 
+  .table-shell > div > table {
+    @apply min-w-[920px];
+  }
+
+  .console-table,
+  .table-shell table {
+    @apply w-full border-collapse text-left text-sm leading-6 text-console-text;
+  }
+
+  .table-shell thead {
+    @apply bg-console-surface-alt;
+  }
+
+  .console-table thead {
+    @apply bg-console-surface-alt;
+  }
+
+  .table-shell thead tr,
+  .console-table thead tr {
+    @apply border-b border-console-border;
+  }
+
+  .table-shell th,
+  .console-table th {
+    @apply whitespace-nowrap px-4 py-3 text-xs font-medium leading-5 text-console-muted;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .table-shell td,
+  .console-table td {
+    @apply whitespace-nowrap px-4 py-3.5 align-middle text-sm text-console-text;
+  }
+
+  .table-shell.table-shell-dense th,
+  .console-table-dense th {
+    @apply px-3 py-2.5;
+  }
+
+  .table-shell.table-shell-dense td,
+  .console-table-dense td {
+    @apply px-3 py-3;
+  }
+
+  .table-shell tbody tr,
+  .console-table tbody tr {
+    @apply border-t border-console-border bg-console-surface transition-colors;
+  }
+
+  .table-shell tbody tr:hover,
+  .console-table tbody tr:hover {
+    @apply bg-console-surface-alt;
+  }
+
+  .table-shell tbody tr:first-child,
+  .console-table tbody tr:first-child {
+    border-top: 0;
+  }
+
+  .console-table-empty {
+    @apply px-4 py-12 text-center text-sm text-console-muted;
+  }
+
+  .console-table-sticky-right {
+    @apply sticky right-0 z-10 bg-console-surface shadow-[-4px_0_6px_-2px_rgba(31,35,41,0.04)];
+  }
+
+  .console-table-toolbar {
+    @apply border-b border-console-border bg-console-surface px-4 py-3;
+  }
+
+  .console-table-section {
+    @apply page-card overflow-hidden;
+  }
+
+  .console-table-cell-link {
+    @apply font-medium text-console-primary transition-colors hover:text-console-primary-hover hover:underline;
+  }
+
+  .console-table-action {
+    @apply inline-flex items-center gap-2 rounded-button border border-console-border bg-console-surface px-3 py-1.5 text-xs font-medium text-console-muted transition-colors hover:border-console-border-strong hover:bg-console-surface-alt hover:text-console-text;
+  }
+
+  .console-table-action-danger {
+    @apply border-console-danger/20 text-console-danger hover:border-console-danger/30 hover:bg-console-danger-soft hover:text-console-danger;
+  }
+
+  .console-table-action-primary {
+    @apply border-console-primary/20 text-console-primary hover:border-console-primary/30 hover:bg-console-primary-soft hover:text-console-primary;
+  }
+
+  .console-table-input {
+    @apply w-full rounded-button border border-console-border bg-console-surface px-2 py-1 text-sm text-console-text outline-none transition focus:border-console-primary;
+  }
+
+  .console-table-select {
+    @apply rounded-button border border-console-border bg-console-surface px-2 py-1 text-xs text-console-text outline-none transition focus:border-console-primary;
+  }
+
+  .table-shell input[type='checkbox'],
+  .console-table input[type='checkbox'] {
+    accent-color: #4286fd;
+  }
+
   .modal-grid-2 {
     @apply grid grid-cols-1 gap-4 sm:grid-cols-2;
+  }
+
+  .console-sidebar {
+    @apply fixed inset-y-0 left-0 z-40 flex h-full w-[244px] max-w-[84vw] flex-col border-r border-console-border bg-console-surface text-console-text shadow-floating transition-transform duration-300 lg:static lg:z-20 lg:w-[224px] lg:max-w-none lg:flex-shrink-0 lg:translate-x-0 lg:shadow-none;
+  }
+
+  .console-sidebar-brand {
+    @apply flex h-14 flex-shrink-0 items-center justify-between border-b border-console-border px-4;
+  }
+
+  .console-sidebar-body {
+    @apply flex-1 overflow-y-auto py-3;
+  }
+
+  .console-nav-group {
+    @apply flex w-full items-center justify-between rounded-console px-3 py-2.5 text-left text-console-text transition-colors hover:bg-console-primary-soft;
+  }
+
+  .console-nav-item {
+    @apply flex w-full items-center gap-3 rounded-console px-3 py-2.5 text-left text-console-muted transition-colors hover:bg-console-primary-soft hover:text-console-text;
+  }
+
+  .console-nav-item-active {
+    @apply border-l-2 border-console-primary bg-console-primary-soft pl-[10px] text-console-primary;
+  }
+
+  .console-subnav-item {
+    @apply ml-3 flex w-[calc(100%-0.75rem)] items-center gap-2 rounded-button px-3 py-2 text-left text-console-muted transition-colors hover:bg-console-primary-soft hover:text-console-text;
+  }
+
+  .console-subnav-item-active {
+    @apply bg-console-primary-soft text-console-primary;
+  }
+
+  .console-header {
+    @apply sticky top-0 z-20 flex-shrink-0 border-b border-console-border bg-console-surface px-4 sm:px-6;
+  }
+
+  .console-icon-button {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-console border border-console-border bg-console-surface text-console-muted transition-colors hover:border-console-border-strong hover:bg-console-surface-alt hover:text-console-text;
+  }
+
+  .console-account-trigger {
+    @apply flex cursor-pointer items-center gap-3 rounded-console border border-console-border bg-console-surface px-2 py-1 transition-colors hover:border-console-border-strong hover:bg-console-surface-alt;
+  }
+
+  .console-popover {
+    @apply overflow-hidden rounded-console border border-console-border bg-console-surface shadow-floating;
+  }
+
+  .console-popover-header {
+    @apply flex items-center justify-between border-b border-console-border bg-console-surface-alt px-4 py-3;
+  }
+
+  .console-btn-primary {
+    @apply inline-flex items-center gap-2 rounded-button border border-console-primary bg-console-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-console-primary-hover;
+  }
+
+  .console-btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-button border border-console-border bg-console-surface px-4 py-2 text-sm font-medium text-console-text transition-colors hover:border-console-border-strong hover:bg-console-surface-alt;
+  }
+
+  .console-btn-subtle {
+    @apply inline-flex items-center gap-2 rounded-button px-3 py-1.5 text-sm font-medium text-console-muted transition-colors hover:bg-console-primary-soft hover:text-console-text;
+  }
+
+  .console-chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-console-border bg-console-surface px-3 py-1.5 text-xs text-console-muted;
+  }
+
+  .console-icon-badge {
+    @apply flex h-10 w-10 items-center justify-center rounded-console bg-console-primary-soft text-console-primary;
+  }
+
+  .console-segmented {
+    @apply inline-flex items-center gap-1 rounded-console border border-console-border bg-console-surface p-1;
+  }
+
+  .console-segmented-item {
+    @apply rounded-button px-3 py-1.5 text-sm font-medium text-console-muted transition-colors hover:bg-console-primary-soft hover:text-console-text;
+  }
+
+  .console-segmented-item-active {
+    @apply bg-console-primary text-white hover:bg-console-primary-hover hover:text-white;
+  }
+
+  .console-summary-card {
+    @apply rounded-console border border-console-border bg-console-surface px-4 py-4;
+  }
+
+  .console-muted-card {
+    @apply rounded-console border border-console-border bg-console-surface-alt px-4 py-4;
+  }
+
+  .console-card-link {
+    @apply rounded-console border border-console-border bg-console-surface p-5 text-left transition-colors hover:border-console-border-strong hover:bg-console-surface-alt;
+  }
+
+  .console-status-chip {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+  }
+
+  /* Legacy compatibility bridge for untouched modules. */
+  :where(.page-shell, .page-card, .table-shell) :is(div, section, article, aside):not([class*='rounded-full']):is(
+    [class*='rounded-lg'][class*='border'][class*='bg-'],
+    [class*='rounded-xl'][class*='border'][class*='bg-'],
+    [class*='rounded-2xl'][class*='border'][class*='bg-'],
+    [class*='rounded-3xl'][class*='border'][class*='bg-'],
+    [class*='rounded-\[24px\]'][class*='border'][class*='bg-'],
+    [class*='rounded-\[28px\]'][class*='border'][class*='bg-'],
+    [class*='rounded-lg'][class*='shadow'][class*='bg-'],
+    [class*='rounded-xl'][class*='shadow'][class*='bg-'],
+    [class*='rounded-2xl'][class*='shadow'][class*='bg-'],
+    [class*='rounded-3xl'][class*='shadow'][class*='bg-'],
+    [class*='rounded-\[24px\]'][class*='shadow'][class*='bg-'],
+    [class*='rounded-\[28px\]'][class*='shadow'][class*='bg-']
+  ) {
+    border-radius: 6px !important;
+    box-shadow: none !important;
+  }
+
+  :where(.border-slate-100) {
+    border-color: rgba(202, 196, 208, 0.72) !important;
+  }
+
+  :where(.border-slate-200) {
+    border-color: var(--md-sys-color-outline-variant) !important;
+  }
+
+  :where(.border-slate-300) {
+    border-color: rgba(121, 116, 126, 0.24) !important;
+  }
+
+  :where(.bg-slate-50) {
+    background-color: var(--md-sys-color-surface-container-low) !important;
+  }
+
+  :where(.bg-slate-100) {
+    background-color: var(--md-sys-color-surface-container) !important;
+  }
+
+  :where(.hover\:bg-slate-50:hover) {
+    background-color: var(--md-sys-color-surface-container-low) !important;
+  }
+
+  :where(.hover\:bg-slate-100:hover) {
+    background-color: var(--md-sys-color-surface-container) !important;
+  }
+
+  :where(div, section, article, aside):is(
+    [class*='rounded-lg'][class*='border'][class*='bg-white'],
+    [class*='rounded-xl'][class*='border'][class*='bg-white'],
+    [class*='rounded-2xl'][class*='border'][class*='bg-white'],
+    [class*='rounded-3xl'][class*='border'][class*='bg-white'],
+    [class*='rounded-lg'][class*='border'][class*='bg-white/80'],
+    [class*='rounded-xl'][class*='border'][class*='bg-white/80'],
+    [class*='rounded-2xl'][class*='border'][class*='bg-white/80'],
+    [class*='rounded-3xl'][class*='border'][class*='bg-white/80']
+  ) {
+    border-color: var(--md-sys-color-outline-variant) !important;
+    background: var(--md-sys-color-surface-container-lowest) !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+  }
+
+  :where(div, section, article, aside):is(
+    [class*='rounded-lg'][class*='border'][class*='bg-slate-50'],
+    [class*='rounded-xl'][class*='border'][class*='bg-slate-50'],
+    [class*='rounded-2xl'][class*='border'][class*='bg-slate-50'],
+    [class*='rounded-3xl'][class*='border'][class*='bg-slate-50']
+  ) {
+    border-color: var(--md-sys-color-outline-variant) !important;
+    background: var(--md-sys-color-surface-container) !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+  }
+
+  :where(div, section, article, aside):is(
+    [class*='rounded-xl'][class*='shadow-2xl'][class*='bg-white'],
+    [class*='rounded-2xl'][class*='shadow-2xl'][class*='bg-white'],
+    [class*='rounded-3xl'][class*='shadow-2xl'][class*='bg-white'],
+    [class*='rounded-\[28px\]'][class*='shadow-2xl'][class*='bg-white']
+  ) {
+    border: 1px solid var(--md-sys-color-outline-variant);
+    background: var(--md-sys-color-surface-container-lowest) !important;
+    border-radius: 6px !important;
+    box-shadow: var(--md-elevation-2) !important;
+  }
+
+  :where(button)[class*='border-slate-200'][class*='bg-white'],
+  :where(button)[class*='border-slate-200'][class*='bg-slate-100'],
+  :where(a)[class*='border-slate-200'][class*='bg-white'] {
+    border-color: var(--md-sys-color-outline-variant) !important;
+    background: var(--md-sys-color-surface-container-lowest) !important;
+    border-radius: 4px !important;
+    box-shadow: none;
+  }
+
+  :where(button)[class*='border-slate-200'][class*='bg-white']:hover,
+  :where(button)[class*='border-slate-200'][class*='bg-slate-100']:hover,
+  :where(a)[class*='border-slate-200'][class*='bg-white']:hover {
+    border-color: rgba(66, 134, 253, 0.34) !important;
+    background: #f7fbff !important;
+  }
+
+  :where(input, select, textarea)[class*='border-slate-200'] {
+    border-color: var(--md-sys-color-outline) !important;
+    background: var(--md-sys-color-surface-container-lowest) !important;
+    color: var(--md-sys-color-on-surface) !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+  }
+
+  :where(input, select, textarea)[class*='border-slate-200']::placeholder {
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  :where(.page-card, .table-shell) :is(
+    [class*='rounded-2xl border border-slate-200 bg-slate-50'],
+    [class*='rounded-3xl border border-slate-200 bg-slate-50'],
+    [class*='rounded-xl border border-slate-200 bg-slate-50']
+  ) {
+    border-color: var(--md-sys-color-outline-variant) !important;
+    background: var(--md-sys-color-surface-container) !important;
+    border-radius: 6px !important;
+  }
+
+  :where(.page-card, .table-shell) :is(
+    [class*='rounded-2xl border border-slate-200 bg-white'],
+    [class*='rounded-3xl border border-slate-200 bg-white'],
+    [class*='rounded-xl border border-slate-200 bg-white']
+  ) {
+    border-color: var(--md-sys-color-outline-variant) !important;
+    background: var(--md-sys-color-surface-container-lowest) !important;
+    border-radius: 6px !important;
+  }
+
+  :where(.bg-blue-50, .bg-blue-100, .bg-sky-50, .bg-sky-100, .bg-cyan-50, .bg-cyan-100) {
+    background-color: var(--md-sys-color-primary-container) !important;
+  }
+
+  :where(.text-blue-600, .text-blue-700, .text-sky-600, .text-sky-700, .text-cyan-600, .text-cyan-700) {
+    color: var(--md-sys-color-primary) !important;
+  }
+
+  :where(.border-blue-200, .border-blue-300, .border-sky-100, .border-sky-200, .border-sky-300, .border-cyan-100, .border-cyan-200) {
+    border-color: rgba(66, 134, 253, 0.26) !important;
+  }
+
+  :where(.bg-indigo-50, .bg-indigo-100) {
+    background-color: var(--md-sys-color-primary-container) !important;
+  }
+
+  :where(.text-indigo-600, .text-indigo-700) {
+    color: var(--md-sys-color-primary) !important;
+  }
+
+  :where(.border-indigo-200, .border-indigo-300) {
+    border-color: rgba(98, 91, 113, 0.26) !important;
+  }
+
+  :where(.bg-violet-50, .bg-violet-100) {
+    background-color: #f2f3f5 !important;
+  }
+
+  :where(.text-violet-600, .text-violet-700) {
+    color: var(--md-sys-color-on-surface) !important;
+  }
+
+  :where(.border-violet-200, .border-violet-300) {
+    border-color: rgba(125, 82, 96, 0.26) !important;
+  }
+
+  :where(.bg-emerald-50, .bg-emerald-100) {
+    background-color: var(--md-app-color-success-container) !important;
+  }
+
+  :where(.text-emerald-600, .text-emerald-700) {
+    color: var(--md-app-color-success) !important;
+  }
+
+  :where(.border-emerald-100, .border-emerald-200, .border-emerald-300) {
+    border-color: rgba(20, 108, 46, 0.22) !important;
+  }
+
+  :where(.bg-amber-50, .bg-amber-100) {
+    background-color: var(--md-app-color-warning-container) !important;
+  }
+
+  :where(.text-amber-600, .text-amber-700) {
+    color: var(--md-app-color-warning) !important;
+  }
+
+  :where(.border-amber-200, .border-amber-300) {
+    border-color: rgba(143, 78, 0, 0.24) !important;
+  }
+
+  :where(.bg-rose-50) {
+    background-color: var(--md-sys-color-error-container) !important;
+  }
+
+  :where(.text-rose-600, .text-rose-700) {
+    color: var(--md-sys-color-error) !important;
+  }
+
+  :where(.hover\:bg-blue-50:hover, .hover\:bg-blue-100:hover, .hover\:bg-sky-50:hover, .hover\:bg-sky-100:hover, .hover\:bg-cyan-50:hover) {
+    background-color: var(--md-sys-color-primary-container) !important;
+  }
+
+  :where(.hover\:bg-indigo-100:hover) {
+    background-color: var(--md-sys-color-secondary-container) !important;
+  }
+
+  :where(.hover\:bg-violet-100:hover) {
+    background-color: var(--md-sys-color-tertiary-container) !important;
+  }
+
+  :where(.hover\:bg-emerald-100:hover) {
+    background-color: var(--md-app-color-success-container) !important;
+  }
+
+  :where(.hover\:bg-amber-100:hover) {
+    background-color: var(--md-app-color-warning-container) !important;
+  }
+
+  :where(.hover\:border-blue-300:hover, .hover\:border-sky-300:hover) {
+    border-color: rgba(66, 134, 253, 0.36) !important;
+  }
+
+  :where(.hover\:border-emerald-300:hover) {
+    border-color: rgba(20, 108, 46, 0.34) !important;
+  }
+
+  :where(.hover\:border-amber-300:hover) {
+    border-color: rgba(143, 78, 0, 0.34) !important;
+  }
+
+  [class*='bg-blue-50/70'] {
+    background-color: rgba(234, 221, 255, 0.72) !important;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -48,14 +583,15 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    background: rgba(121, 116, 126, 0.08);
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 rounded-full;
+    background: rgba(121, 116, 126, 0.4);
+    border-radius: 9999px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-400;
+    background: rgba(121, 116, 126, 0.56);
   }
 }

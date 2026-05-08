@@ -9,7 +9,14 @@
  */
 
 import React, { useState } from 'react';
-import { Home, Users, Briefcase, TrendingUp, Users2, BarChart3, User, X } from 'lucide-react';
+import { Home, Users, Briefcase, TrendingUp, Users2, BarChart3, User, X, FileText, Settings2, ChevronDown } from 'lucide-react';
+import {
+  canAccessPersonalDashboard,
+  canAccessReminderSettings,
+  canAccessTeamDashboard,
+  canAccessWorkReports,
+  getDefaultHomeModuleKey,
+} from '../constants/roles';
 
 /**
  * 一级导航项
@@ -30,15 +37,11 @@ function NavItem({ moduleKey, activeModule, setActiveModule, icon: Icon, label, 
           setActiveModule(moduleKey);
           onSelect?.();
         }}
-        className={`flex w-full items-center gap-3 px-6 py-3 text-left transition-colors ${
-          isActive
-            ? 'text-blue-400 bg-slate-700/60 font-bold'
-            : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
-        }`}
+        className={`console-nav-item ${isActive ? 'console-nav-item-active' : ''}`}
         aria-current={isActive ? 'page' : undefined}
       >
-        <Icon size={18} />
-        <span className="text-sm">{label}</span>
+        <Icon size={18} className={isActive ? 'text-console-primary' : 'text-console-subtle'} />
+        <span className="text-sm font-medium">{label}</span>
       </button>
     </li>
   );
@@ -62,14 +65,11 @@ function SubNavItem({ moduleKey, activeModule, setActiveModule, label, onSelect 
           setActiveModule(moduleKey);
           onSelect?.();
         }}
-        className={`flex w-full items-center border-l-4 pl-12 pr-6 py-2.5 text-left transition-colors ${
-          isActive
-            ? 'text-blue-400 bg-[#2f3542] border-blue-500 font-bold'
-            : 'text-slate-400 hover:text-white hover:bg-slate-700/30 border-transparent'
-        }`}
+        className={`console-subnav-item ${isActive ? 'console-subnav-item-active' : ''}`}
         aria-current={isActive ? 'page' : undefined}
       >
-        <span className="text-sm">{label}</span>
+        <span className={`h-1.5 w-1.5 rounded-full ${isActive ? 'bg-console-primary' : 'bg-console-neutral'}`} />
+        <span className="text-sm font-medium">{label}</span>
       </button>
     </li>
   );
@@ -90,19 +90,16 @@ function SectionGroup({ icon: Icon, label, expanded, onToggle, children }) {
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between px-6 py-3 text-left text-slate-300 transition-colors hover:bg-slate-700/50"
+        className="console-nav-group"
         aria-expanded={expanded}
       >
         <div className="flex items-center gap-3">
-          <Icon size={18} />
-          <span className="text-sm">{label}</span>
+          <Icon size={18} className="text-console-subtle" />
+          <span className="text-sm font-medium">{label}</span>
         </div>
+        <ChevronDown size={16} className={`text-console-muted transition-transform ${expanded ? '' : '-rotate-90'}`} />
       </button>
-      {expanded && (
-        <ul className="bg-[#242833] py-1">
-          {children}
-        </ul>
-      )}
+      {expanded ? <ul className="mt-1 space-y-1 py-1">{children}</ul> : null}
     </li>
   );
 }
@@ -113,30 +110,49 @@ function SectionGroup({ icon: Icon, label, expanded, onToggle, children }) {
  * @param {string} props.activeModule - 当前激活的模块标识符
  * @param {Function} props.setActiveModule - 切换模块的回调
  */
-export default function SystemSidebar({ activeModule, setActiveModule, isOpen = false, onClose }) {
+export default function SystemSidebar({ activeModule, setActiveModule, userRole, isOpen = false, onClose }) {
+  const [homeExpanded, setHomeExpanded] = useState(true);
   const [staffExpanded, setStaffExpanded] = useState(true);
   const [leadsExpanded, setLeadsExpanded] = useState(true);
+  const [reportsExpanded, setReportsExpanded] = useState(true);
   const [financeExpanded, setFinanceExpanded] = useState(true);
+  const [settingsExpanded, setSettingsExpanded] = useState(true);
+  const showPersonalDashboard = canAccessPersonalDashboard(userRole);
+  const showTeamDashboard = canAccessTeamDashboard(userRole);
+  const showReports = canAccessWorkReports(userRole);
+  const showSettings = canAccessReminderSettings(userRole);
+  const prioritizeTeamDashboard = getDefaultHomeModuleKey(userRole) === 'home-team-dashboard';
+  const homeNavItems = (
+    prioritizeTeamDashboard
+      ? [
+          showTeamDashboard && { moduleKey: 'home-team-dashboard', label: '团队作战图' },
+          showPersonalDashboard && { moduleKey: 'home-personal-dashboard', label: '我的工作台' },
+        ]
+      : [
+          showPersonalDashboard && { moduleKey: 'home-personal-dashboard', label: '我的工作台' },
+          showTeamDashboard && { moduleKey: 'home-team-dashboard', label: '团队作战图' },
+        ]
+  ).filter(Boolean);
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-40 flex h-full w-[280px] max-w-[84vw] flex-col bg-[#2B303B] text-slate-300 shadow-2xl transition-transform duration-300 lg:static lg:z-20 lg:w-[240px] lg:max-w-none lg:flex-shrink-0 lg:translate-x-0 lg:shadow-none ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`console-sidebar ${
+        isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}
       aria-label="系统导航"
     >
       {/* Logo 区域 */}
-      <div className="flex h-16 items-center justify-between border-b border-slate-700 px-5 flex-shrink-0">
-        <div className="flex items-center">
-          <div className="w-6 h-6 bg-blue-500 flex items-center justify-center mr-3">
-            <Briefcase size={14} className="text-white" />
+      <div className="console-sidebar-brand">
+        <div className="flex items-center gap-3">
+          <div className="console-icon-badge h-8 w-8">
+            <Briefcase size={14} />
           </div>
-          <span className="text-white font-bold text-sm">靠铺OA系统</span>
+          <span className="text-[15px] font-semibold text-console-text">靠铺OA系统</span>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded p-1 text-slate-400 transition-colors hover:bg-slate-700/50 hover:text-white lg:hidden"
+          className="console-icon-button h-8 w-8 lg:hidden"
           aria-label="关闭侧边栏"
         >
           <X size={18} />
@@ -144,9 +160,28 @@ export default function SystemSidebar({ activeModule, setActiveModule, isOpen = 
       </div>
 
       {/* 导航菜单 */}
-      <div className="flex-1 overflow-y-auto py-4">
-        <ul className="space-y-0.5">
-          <NavItem moduleKey="home" activeModule={activeModule} setActiveModule={setActiveModule} icon={Home} label="首页" onSelect={onClose} />
+      <div className="console-sidebar-body custom-scrollbar">
+        <ul className="space-y-1 px-2.5">
+          <SectionGroup
+            icon={Home}
+            label="首页"
+            expanded={homeExpanded}
+            onToggle={() => setHomeExpanded(!homeExpanded)}
+          >
+            {homeNavItems.map((item) => (
+              <SubNavItem
+                key={item.moduleKey}
+                moduleKey={item.moduleKey}
+                activeModule={activeModule}
+                setActiveModule={setActiveModule}
+                label={item.label}
+                onSelect={onClose}
+              />
+            ))}
+            <SubNavItem moduleKey="home-performance" activeModule={activeModule} setActiveModule={setActiveModule} label="业绩目标" onSelect={onClose} />
+            <SubNavItem moduleKey="home-order-binding" activeModule={activeModule} setActiveModule={setActiveModule} label="订单关联" onSelect={onClose} />
+            <SubNavItem moduleKey="home-divided-config" activeModule={activeModule} setActiveModule={setActiveModule} label="分成配置" onSelect={onClose} />
+          </SectionGroup>
 
           <SectionGroup
             icon={Users}
@@ -154,28 +189,14 @@ export default function SystemSidebar({ activeModule, setActiveModule, isOpen = 
             expanded={staffExpanded}
             onToggle={() => setStaffExpanded(!staffExpanded)}
           >
+            <SubNavItem moduleKey="people-all" activeModule={activeModule} setActiveModule={setActiveModule} label="全部员工" onSelect={onClose} />
+            <SubNavItem moduleKey="people-direct" activeModule={activeModule} setActiveModule={setActiveModule} label="直属员工" onSelect={onClose} />
             <SubNavItem moduleKey="profile" activeModule={activeModule} setActiveModule={setActiveModule} label="销售画像" onSelect={onClose} />
           </SectionGroup>
 
-          <NavItem moduleKey="customer" activeModule={activeModule} setActiveModule={setActiveModule} icon={Users2}   label="客户管理" onSelect={onClose} />
+          <NavItem moduleKey="channel" activeModule={activeModule} setActiveModule={setActiveModule} icon={Briefcase} label="渠道管理" onSelect={onClose} />
 
-          <SectionGroup
-            icon={BarChart3}
-            label="财务管理"
-            expanded={financeExpanded}
-            onToggle={() => setFinanceExpanded(!financeExpanded)}
-          >
-            <SubNavItem moduleKey="finance-supplier" activeModule={activeModule} setActiveModule={setActiveModule} label="供应商对账款" onSelect={onClose} />
-            <SubNavItem moduleKey="finance-system-fee" activeModule={activeModule} setActiveModule={setActiveModule} label="系统服务费" onSelect={onClose} />
-            <SubNavItem moduleKey="finance-staff-bill" activeModule={activeModule} setActiveModule={setActiveModule} label="员工对账单" onSelect={onClose} />
-            <SubNavItem moduleKey="finance-staff-correct" activeModule={activeModule} setActiveModule={setActiveModule} label="员工账单校正" onSelect={onClose} />
-            <SubNavItem moduleKey="finance-channel-bill" activeModule={activeModule} setActiveModule={setActiveModule} label="渠道对账单" onSelect={onClose} />
-            <SubNavItem moduleKey="finance-channel-correct" activeModule={activeModule} setActiveModule={setActiveModule} label="渠道账单校正" onSelect={onClose} />
-            <SubNavItem moduleKey="finance-customer-correct" activeModule={activeModule} setActiveModule={setActiveModule} label="客户账单校正" onSelect={onClose} />
-            <SubNavItem moduleKey="finance-settle-list" activeModule={activeModule} setActiveModule={setActiveModule} label="结算订单列表" onSelect={onClose} />
-          </SectionGroup>
-
-          <NavItem moduleKey="channel"  activeModule={activeModule} setActiveModule={setActiveModule} icon={Briefcase} label="渠道管理" onSelect={onClose} />
+          <NavItem moduleKey="customer" activeModule={activeModule} setActiveModule={setActiveModule} icon={Users2} label="客户管理" onSelect={onClose} />
 
           <SectionGroup
             icon={TrendingUp}
@@ -186,6 +207,45 @@ export default function SystemSidebar({ activeModule, setActiveModule, isOpen = 
             <SubNavItem moduleKey="leads" activeModule={activeModule} setActiveModule={setActiveModule} label="线索管理" onSelect={onClose} />
             <SubNavItem moduleKey="pitch" activeModule={activeModule} setActiveModule={setActiveModule} label="AI推客" onSelect={onClose} />
           </SectionGroup>
+
+          {showReports ? (
+            <SectionGroup
+              icon={FileText}
+              label="工作报告"
+              expanded={reportsExpanded}
+              onToggle={() => setReportsExpanded(!reportsExpanded)}
+            >
+              <SubNavItem moduleKey="reports-daily" activeModule={activeModule} setActiveModule={setActiveModule} label="AI日报/周报" onSelect={onClose} />
+            </SectionGroup>
+          ) : null}
+
+          <SectionGroup
+            icon={BarChart3}
+            label="财务管理"
+            expanded={financeExpanded}
+            onToggle={() => setFinanceExpanded(!financeExpanded)}
+          >
+            <SubNavItem moduleKey="finance-supplier" activeModule={activeModule} setActiveModule={setActiveModule} label="供应商对账款" onSelect={onClose} />
+            <SubNavItem moduleKey="finance-commission" activeModule={activeModule} setActiveModule={setActiveModule} label="提成管理" onSelect={onClose} />
+            <SubNavItem moduleKey="finance-system-fee" activeModule={activeModule} setActiveModule={setActiveModule} label="系统服务费" onSelect={onClose} />
+            <SubNavItem moduleKey="finance-staff-bill" activeModule={activeModule} setActiveModule={setActiveModule} label="员工对账单" onSelect={onClose} />
+            <SubNavItem moduleKey="finance-staff-correct" activeModule={activeModule} setActiveModule={setActiveModule} label="员工账单校正" onSelect={onClose} />
+            <SubNavItem moduleKey="finance-channel-bill" activeModule={activeModule} setActiveModule={setActiveModule} label="渠道对账单" onSelect={onClose} />
+            <SubNavItem moduleKey="finance-channel-correct" activeModule={activeModule} setActiveModule={setActiveModule} label="渠道账单校正" onSelect={onClose} />
+            <SubNavItem moduleKey="finance-customer-correct" activeModule={activeModule} setActiveModule={setActiveModule} label="客户账单校正" onSelect={onClose} />
+            <SubNavItem moduleKey="finance-settle-list" activeModule={activeModule} setActiveModule={setActiveModule} label="结算订单列表" onSelect={onClose} />
+          </SectionGroup>
+
+          {showSettings ? (
+            <SectionGroup
+              icon={Settings2}
+              label="系统设置"
+              expanded={settingsExpanded}
+              onToggle={() => setSettingsExpanded(!settingsExpanded)}
+            >
+              <SubNavItem moduleKey="settings-reminders" activeModule={activeModule} setActiveModule={setActiveModule} label="督促规则配置" onSelect={onClose} />
+            </SectionGroup>
+          ) : null}
 
           <NavItem moduleKey="personal" activeModule={activeModule} setActiveModule={setActiveModule} icon={User} label="个人中心" onSelect={onClose} />
         </ul>

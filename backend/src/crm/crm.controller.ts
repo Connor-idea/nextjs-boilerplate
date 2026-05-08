@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Put } from '@nestjs/common';
 import { CrmStateService } from './crm-state.service';
 import { LeadRecord, SupplierBillRecord } from './seed-data';
 
 @Controller('api')
 export class CrmController {
-  constructor(private readonly crmStateService: CrmStateService) {}
+  constructor(@Inject(CrmStateService) private readonly crmStateService: CrmStateService) {}
 
   @Get('health')
   health() {

@@ -16,6 +16,14 @@ import {
   TrendingUp, ShieldCheck, Wand2, Database, AlertTriangle, Filter
 } from 'lucide-react';
 import { MOCK_REP_PERFORMANCE, teamMembers } from '../constants/salesData';
+import {
+  canCreateLead,
+  canEditLead,
+  canManageLeads,
+  canReturnLead,
+  canViewAllLeads,
+  getLeadOwnerNameForRole,
+} from '../constants/roles';
 import SubpageLayout from '../components/SubpageLayout';
 
 /** 用于公司名联想输入的模拟企业名称库 */
@@ -49,22 +57,22 @@ const defaultMockContacts = [
 
 // 初始化数据
 const initialLeads = [
-  { id: 1, name: '林晓', company: '北京字节跳动科技有限公司', industry: '人工智能', phone: '138-0013-8000', email: 'linx@company.com', status: '二次分配线索', source: '抖音', date: '2024-02-10', owner: '张三', isSelfAdded: false, score: 99, daysUncontacted: 3, trackStatus: 'pending', contacts: defaultMockContacts, history: [], companyNote: '重点跟进二期项目', qccLastFetchedAt: Date.now() - 10 * 60 * 1000 },
+  { id: 1, name: '林晓', company: '北京字节跳动科技有限公司', industry: '人工智能', phone: '138-0013-8000', email: 'linx@company.com', status: '二次分配线索', source: '抖音', date: '2024-02-10', owner: '戴贤亮', isSelfAdded: false, score: 99, daysUncontacted: 3, trackStatus: 'pending', contacts: defaultMockContacts, history: [], companyNote: '重点跟进二期项目', qccLastFetchedAt: Date.now() - 10 * 60 * 1000 },
   { id: 11, name: '林晓', company: '北京字节跳动科技有限公司', industry: '人工智能', phone: '138-0013-8000', email: 'linx_2@company.com', status: '新线索', source: '批量导入', date: '2024-03-10', owner: '未分配', isSelfAdded: false, score: null, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
-  { id: 2, name: '李娜', company: '上海腾讯企点科技有限公司', industry: '企业服务', phone: '139-1234-5678', email: 'lina@example.com', status: '新线索', source: '名片录入', date: '2024-02-26', owner: '李四', isSelfAdded: true, score: 95, daysUncontacted: 0, trackStatus: 'completed', contacts: [], history: [], companyNote: '' },
+  { id: 2, name: '李娜', company: '上海腾讯企点科技有限公司', industry: '企业服务', phone: '139-1234-5678', email: 'lina@example.com', status: '新线索', source: '名片录入', date: '2024-02-26', owner: '蔡文嘉', isSelfAdded: true, score: 95, daysUncontacted: 0, trackStatus: 'completed', contacts: [], history: [], companyNote: '' },
   { id: 5, name: '钱伟', company: '京东集团', industry: '电子商务', phone: '131-2222-3333', email: 'qianw@example.com', status: '新线索', source: '网络搜索', date: '2024-03-01', owner: '未分配', isSelfAdded: false, score: null, daysUncontacted: 2, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 6, name: '周杰', company: '北京百度网讯科技有限公司', industry: '人工智能', phone: '未知号码', email: 'zhoujie@example.com', status: '异常线索', source: '信息流广告', date: '2024-03-05', owner: '未分配', isSelfAdded: false, score: null, daysUncontacted: 1, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 7, name: '刘涛', company: '华为技术有限公司', industry: '通信电子', phone: '139-6666', email: 'liutao@example.com', status: '退回待分配', source: '网络搜索', date: '2024-03-06', owner: '未分配', isSelfAdded: false, score: 92, daysUncontacted: 5, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
-  { id: 8, name: '吴磊', company: '小米科技有限责任公司', industry: '智能硬件', phone: '131-5555-4444', email: 'wulei@example.com', status: '三次分配线索', source: '批量导入', date: '2024-03-07', owner: '张三', isSelfAdded: false, score: 78, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 8, name: '吴磊', company: '小米科技有限责任公司', industry: '智能硬件', phone: '131-5555-4444', email: 'wulei@example.com', status: '三次分配线索', source: '批量导入', date: '2024-03-07', owner: '邱鑫', isSelfAdded: false, score: 78, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 9, name: '陈晨', company: '网易（杭州）网络有限公司', industry: '游戏开发', phone: '138-1111-2222', email: 'chenchen@example.com', status: '新线索', source: '名片', rating: 'B', date: '2024-03-08', owner: '未分配', isSelfAdded: false, score: 82, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
-  { id: 12, name: '孙悦', company: '美团点评有限公司', industry: '电子商务', phone: '135-8888-9999', email: 'sunyue@meituan.com', status: '新线索', source: '展会画册', rating: 'A', date: '2024-04-01', owner: '李四', isSelfAdded: false, score: 97, daysUncontacted: 1, trackStatus: 'pending', contacts: [], history: [], companyNote: '预算充足，决策链短，优先跟进' },
-  { id: 13, name: '郑浩', company: '滴滴出行科技有限公司', industry: '企业服务', phone: '132-7777-6666', email: 'zhenghao@didiglobal.com', status: '新线索', source: '老客户转介绍', rating: 'A', date: '2024-04-03', owner: '王五', isSelfAdded: false, score: 94, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
-  { id: 14, name: '谢婷', company: '商汤科技有限公司', industry: '人工智能', phone: '133-4444-5555', email: 'xieting@sensetime.com', status: '二次分配线索', source: '信息流广告', rating: 'B', date: '2024-04-05', owner: '张三', isSelfAdded: false, score: 85, daysUncontacted: 2, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 12, name: '孙悦', company: '美团点评有限公司', industry: '电子商务', phone: '135-8888-9999', email: 'sunyue@meituan.com', status: '新线索', source: '展会画册', rating: 'A', date: '2024-04-01', owner: '蔡文嘉', isSelfAdded: false, score: 97, daysUncontacted: 1, trackStatus: 'pending', contacts: [], history: [], companyNote: '预算充足，决策链短，优先跟进' },
+  { id: 13, name: '郑浩', company: '滴滴出行科技有限公司', industry: '企业服务', phone: '132-7777-6666', email: 'zhenghao@didiglobal.com', status: '新线索', source: '老客户转介绍', rating: 'A', date: '2024-04-03', owner: '邵岩', isSelfAdded: false, score: 94, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 14, name: '谢婷', company: '商汤科技有限公司', industry: '人工智能', phone: '133-4444-5555', email: 'xieting@sensetime.com', status: '二次分配线索', source: '信息流广告', rating: 'B', date: '2024-04-05', owner: '戴贤亮', isSelfAdded: false, score: 85, daysUncontacted: 2, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 15, name: '许凡', company: '蔚来汽车有限公司', industry: '智能制造', phone: '136-3333-2222', email: 'xufan@nio.com', status: '新线索', source: '小红书', rating: 'B', date: '2024-04-06', owner: '未分配', isSelfAdded: false, score: 79, daysUncontacted: 0, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
   { id: 16, name: '魏鑫', company: '好未来教育科技集团', industry: '企业服务', phone: '137-2222-1111', email: 'weixin@tal.com', status: '退回待分配', source: '网络搜索', rating: 'C', date: '2024-04-08', owner: '未分配', isSelfAdded: false, score: 63, daysUncontacted: 4, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
-  { id: 17, name: '曹静', company: '中通快递股份有限公司', industry: '电子商务', phone: '139-9999-8888', email: 'caojing@zto.com', status: '新线索', source: '批量导入', rating: 'C', date: '2024-04-09', owner: '孙琦', isSelfAdded: false, score: 58, daysUncontacted: 1, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
-  { id: 18, name: '黄磊', company: '猎豹移动科技有限公司', industry: '人工智能', phone: '131-6666-7777', email: 'huanglei@cmcm.com', status: '失效线索', source: '名片录入', rating: 'D', date: '2024-03-20', owner: '李四', isSelfAdded: false, score: 32, daysUncontacted: 20, trackStatus: 'draft', contacts: [], history: [], companyNote: '多次联系无响应' },
-  { id: 19, name: '彭芳', company: '途家网络技术有限公司', industry: '电子商务', phone: '138-5555-4321', email: 'pengfang@tujia.com', status: '三次分配线索', source: '抖音', rating: 'D', date: '2024-03-18', owner: '王五', isSelfAdded: false, score: 28, daysUncontacted: 12, trackStatus: 'pending', contacts: [], history: [], companyNote: '意向极低' },
+  { id: 17, name: '曹静', company: '中通快递股份有限公司', industry: '电子商务', phone: '139-9999-8888', email: 'caojing@zto.com', status: '新线索', source: '批量导入', rating: 'C', date: '2024-04-09', owner: '邵岩', isSelfAdded: true, score: 58, daysUncontacted: 1, trackStatus: 'pending', contacts: [], history: [], companyNote: '' },
+  { id: 18, name: '黄磊', company: '猎豹移动科技有限公司', industry: '人工智能', phone: '131-6666-7777', email: 'huanglei@cmcm.com', status: '失效线索', source: '名片录入', rating: 'D', date: '2024-03-20', owner: '邱鑫', isSelfAdded: false, score: 32, daysUncontacted: 20, trackStatus: 'draft', contacts: [], history: [], companyNote: '多次联系无响应' },
+  { id: 19, name: '彭芳', company: '途家网络技术有限公司', industry: '电子商务', phone: '138-5555-4321', email: 'pengfang@tujia.com', status: '三次分配线索', source: '抖音', rating: 'D', date: '2024-03-18', owner: '邱鑫', isSelfAdded: false, score: 28, daysUncontacted: 12, trackStatus: 'pending', contacts: [], history: [], companyNote: '意向极低' },
 ];
 
 const EmptyState = ({ text }) => (
@@ -75,7 +83,7 @@ const EmptyState = ({ text }) => (
 );
 
 const defaultAssignLogs = [
-  { id: 101, date: '2024-04-07 09:00:00', type: '智能负载均衡', total: 17, details: '李四(10), 孙琦(5), 王五(2), 张三(0)', status: '成功', assignments: [] }
+  { id: 101, date: '2024-04-07 09:00:00', type: '智能负载均衡', total: 17, details: '蔡文嘉(6), 邵岩(5), 戴贤亮(4), 邱鑫(2)', status: '成功', assignments: [] }
 ];
 
 // === 辅助组件：公司联想输入 ===
@@ -123,12 +131,12 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
   const [selectedLead, setSelectedLead] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [pendingCleanupCount, setPendingCleanupCount] = useState(0);
-  const currentUserName = '张三';
+  const currentUserName = getLeadOwnerNameForRole(userRole);
   const leadSnapshotRef = useRef(JSON.stringify(externalLeads));
   const assignLogSnapshotRef = useRef(JSON.stringify(externalAssignLogs));
   
   const [autoAssignConfig, setAutoAssignConfig] = useState({
-    enabled: true, mode: 'smart', time: '09:00', limitPerRep: 5, reps: ['张三', '李四', '王五', '孙琦']
+    enabled: true, mode: 'smart', time: '09:00', limitPerRep: 5, reps: teamMembers
   });
   const [assignLogs, setAssignLogs] = useState(externalAssignLogs);
   
@@ -486,7 +494,13 @@ export default function LeadsModule({ userRole, showToast, onSystemNotify, onNav
     setLeads([...formatted, ...leads]); setCurrentView('list'); showToast('✅ 线索批量导入成功');
   };
 
-  const filteredLeads = leads.filter(l => userRole === 'manager' ? true : (l.owner === currentUserName || l.owner === '未分配'));
+  const filteredLeads = leads.filter((lead) => {
+    if (canViewAllLeads(userRole)) {
+      return true;
+    }
+
+    return lead.owner === currentUserName || lead.owner === '未分配';
+  });
   const isListView = currentView === 'list';
 
   return (
@@ -550,6 +564,8 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
   const [filterSource, setFilterSource] = useState([]);
   const [filterStatus, setFilterStatus] = useState([]);
   const [filterRating, setFilterRating] = useState([]);
+  const canManageLeadRecords = canManageLeads(userRole);
+  const canCreateLeadRecords = canCreateLead(userRole);
   
   const filterOptions = {
     industries: ['人工智能', '企业服务', '智能制造', '电子商务', '通信电子', '游戏开发'],
@@ -667,10 +683,12 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
 
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center px-6 pb-5 gap-4">
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            <button onClick={onBatchOcr} className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 text-sm font-medium hover:bg-blue-100 transition-colors shadow-sm flex items-center gap-1.5">
-              <ScanLine size={16} /> 名片识别
-            </button>
-            {userRole === 'manager' && (
+            {canCreateLeadRecords && (
+              <button onClick={onBatchOcr} className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 text-sm font-medium hover:bg-blue-100 transition-colors shadow-sm flex items-center gap-1.5">
+                <ScanLine size={16} /> 名片识别
+              </button>
+            )}
+            {canManageLeadRecords && (
               <>
                 <button onClick={onImport} className="bg-white border border-slate-200 text-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-1.5">
                   <UploadCloud size={16} /> 批量导入
@@ -686,9 +704,11 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
                 </button>
               </>
             )}
-            <button onClick={onAdd} className="bg-blue-600 text-white px-5 py-2 text-sm font-medium flex items-center gap-1.5 hover:bg-blue-700 shadow-sm transition-colors">
-              <Plus size={16} /> 录入新线索
-            </button>
+            {canCreateLeadRecords && (
+              <button onClick={onAdd} className="bg-blue-600 text-white px-5 py-2 text-sm font-medium flex items-center gap-1.5 hover:bg-blue-700 shadow-sm transition-colors">
+                <Plus size={16} /> 录入新线索
+              </button>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
@@ -702,7 +722,7 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
         {/* 高级筛选多行面板 (常驻展开，无动画) */}
         <div className="px-6 py-2 bg-slate-50/50 border-y border-slate-100">
           {/* 负责人筛选 (仅主管可见) */}
-          {userRole === 'manager' && (
+          {canManageLeadRecords && (
             <div className="flex items-start gap-4 py-3 border-b border-slate-100/80">
               <div className="text-sm font-bold text-slate-700 w-16 shrink-0 pt-1">当前负责人</div>
               <div className="flex flex-wrap gap-2 flex-1">
@@ -759,7 +779,7 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
           </div>
         </div>
 
-        {userRole === 'manager' && (
+        {canManageLeadRecords && (
           <div className={`flex items-center gap-3 px-6 py-3 bg-slate-50/80 border-b border-slate-100 transition-opacity ${selectedIds.length > 0 ? 'opacity-100' : 'opacity-40 pointer-events-none grayscale'}`}>
             <span className="text-xs text-slate-500 font-semibold mr-2">已选中 <span className="text-blue-600">{selectedIds.length}</span> 项</span>
             <button onClick={handleOpenAIAssign} className="bg-white border border-slate-200 text-slate-700 px-4 py-1.5 text-xs font-medium hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 transition-colors shadow-sm">AI智能分配</button>
@@ -768,11 +788,11 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
           </div>
         )}
 
-        <div className="table-shell">
-          <table className="w-full min-w-[980px] text-sm text-left">
+        <div className="table-shell table-shell-dense">
+          <table className="console-table console-table-dense w-full min-w-[980px] text-sm text-left">
             <thead className="bg-slate-50/50 border-b border-slate-100 text-slate-500 text-xs font-semibold">
               <tr>
-                {userRole === 'manager' && (
+                {canManageLeadRecords && (
                    <th className="px-6 py-4 w-14 text-center">
                      <input type="checkbox" checked={isCurrentPageSelected} onChange={handlePageSelectToggle} className="w-4 h-4text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer" />
                    </th>
@@ -789,13 +809,13 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {paginatedLeads.length > 0 ? paginatedLeads.map(l => {
-                const canEdit = userRole === 'manager' || (userRole === 'sales' && l.isSelfAdded);
-                const canReturn = userRole === 'sales' && !l.isSelfAdded && l.owner !== '未分配';
-                const canAssign = userRole === 'manager';
+                const canEdit = canEditLead(userRole, l);
+                const canReturn = canReturnLead(userRole, l);
+                const canAssign = canManageLeadRecords;
 
                 return (
-                  <tr key={l.id} className={`hover:bg-slate-50 transition-colors ${selectedIds.includes(l.id) ? 'bg-blue-50/30' : ''}`}>
-                    {userRole === 'manager' && (
+                  <tr key={l.id} className={`${selectedIds.includes(l.id) ? 'bg-console-primary-soft' : ''}`}>
+                    {canManageLeadRecords && (
                       <td className="px-6 py-4 text-center">
                         <input type="checkbox" className="w-4 h-4text-blue-600 border-slate-300 focus:ring-blue-500 cursor-pointer" checked={selectedIds.includes(l.id)} onChange={() => toggleSelection(l.id)} />
                       </td>
@@ -827,19 +847,19 @@ function LeadListView({ allLeads, setAllLeads, leads, userRole, teamMembers, sea
                         {canAssign && <button onClick={() => openAssignModal([l.id])} className="px-3 py-1.5 text-indigo-600 hover:bg-indigo-50 font-medium text-xs transition-colors">{l.owner !== '未分配' ? '改派' : '分配'}</button>}
                         {canEdit && <button onClick={() => onDetail(l, true)} className="px-3 py-1.5 text-slate-600 hover:bg-slate-100 font-medium text-xs transition-colors">编辑</button>}
                         {canReturn && <button onClick={() => onReturn(l.id)} className="px-3 py-1.5 text-orange-600 hover:bg-orange-50 font-medium text-xs transition-colors">退回</button>}
-                        {userRole === 'manager' && <button onClick={() => { setDeleteTargetIds([l.id]); setShowDeleteModal(true); }} className="px-3 py-1.5 text-red-500 hover:bg-red-50 font-medium text-xs transition-colors">删除</button>}
+                        {canManageLeadRecords && <button onClick={() => { setDeleteTargetIds([l.id]); setShowDeleteModal(true); }} className="px-3 py-1.5 text-red-500 hover:bg-red-50 font-medium text-xs transition-colors">删除</button>}
                       </div>
                     </td>
                   </tr>
                 );
-              }) : <tr><td colSpan={8} className="px-8 py-24 text-center text-slate-400 font-medium">暂无匹配的线索数据</td></tr>}
+              }) : <tr><td colSpan={canManageLeadRecords ? 9 : 8} className="px-8 py-24 text-center text-slate-400 font-medium">暂无匹配的线索数据</td></tr>}
             </tbody>
           </table>
         </div>
 
         <div className="bg-white border-t border-slate-100 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {userRole === 'manager' && (
+            {canManageLeadRecords && (
               <>
                 <button onClick={handleSelectAllToggle} className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-600 transition-colors shadow-sm">
                   {isAllSelected ? '取消全选' : '全选'}
@@ -1252,8 +1272,8 @@ function DataCleaningModal({ leads, setLeads, showToast, onClose }) {
                   {activeTab === 'invalids' && (
                     <div className="space-y-6">
                       {results.invalids.length === 0 ? <EmptyState text="当前线索库联系方式格式良好！" /> : 
-                        <div className="table-shell border border-rose-100 shadow-sm">
-                          <table className="w-full min-w-[760px] text-sm text-left">
+                        <div className="table-shell table-shell-dense">
+                          <table className="console-table console-table-dense w-full min-w-[760px] text-sm text-left">
                             <thead className="bg-rose-50 border-b border-rose-100 text-rose-700 text-xs font-bold">
                               <tr>
                                 <th className="px-6 py-4">公司与联系人</th>
@@ -1280,10 +1300,10 @@ function DataCleaningModal({ leads, setLeads, showToast, onClose }) {
                                   </td>
                                   <td className="px-6 py-4 text-right">
                                     <div className="flex justify-end gap-2">
-                                      <button onClick={() => openEditLead(l)} className="bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 px-4 py-2 text-xs font-bold transition-colors shadow-sm">
+                                      <button onClick={() => openEditLead(l)} className="console-table-action console-table-action-primary px-4 py-2 font-bold shadow-none">
                                         手工录入修正
                                       </button>
-                                      <button onClick={() => handleMarkInvalid(l.id)} className="bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-600 hover:text-white px-4 py-2 text-xs font-bold transition-colors shadow-sm">
+                                      <button onClick={() => handleMarkInvalid(l.id)} className="console-table-action console-table-action-danger px-4 py-2 font-bold shadow-none">
                                         直接标记为失效
                                       </button>
                                     </div>
@@ -1446,8 +1466,8 @@ function LeadDetailView({ lead, isEdit, setIsEdit, userRole, onBack, onSave, sho
     onSave(finalForm); setIsEdit(false); 
   };
   
-  const canEdit = userRole === 'manager' || (userRole === 'sales' && lead.isSelfAdded);
-  const canReturn = userRole === 'sales' && !lead.isSelfAdded && lead.owner !== '未分配';
+  const canEdit = canEditLead(userRole, lead);
+  const canReturn = canReturnLead(userRole, lead);
 
   return (
     <SubpageLayout
@@ -2278,8 +2298,8 @@ function BatchOcrView({ onCancel, onSaveBatch, showToast }) {
 
   const maxCards = 10;
   const existingContacts = [
-    { phone: '13812345678', name: '张三', company: '阿里巴巴' },
-    { phone: '13998765432', name: '李四', company: '腾讯' }
+    { phone: '13812345678', name: '蔡文嘉', company: '北京示例科技有限公司' },
+    { phone: '13998765432', name: '邵岩', company: '上海未来智能有限公司' }
   ];
 
   const normalizePhone = (v) => (v || '').replace(/\D/g, '');
@@ -3040,8 +3060,8 @@ function ImportLeadView({ onCancel, onConfirm, onPartialImport, showToast, exist
   const handleDownloadTemplate = () => {
     const headers = ['姓名*', '公司*', '职位', '电话', '邮箱', '行业'];
     const examples = [
-      ['张三', '北京示例科技有限公司', '销售总监', '13800138000', 'zhangsan@example.com', '企业服务'],
-      ['李四', '上海未来智能有限公司', '市场经理', '13900139000', 'lisi@example.com', '人工智能']
+      ['戴贤亮', '北京示例科技有限公司', '销售组长', '13800138000', 'daixianliang@example.com', '企业服务'],
+      ['蔡文嘉', '上海未来智能有限公司', '销售专员', '13900139000', 'caiwenjia@example.com', '人工智能']
     ];
     const csvRows = [headers.join(','), ...examples.map((row) => row.join(','))];
     const csvContent = `\uFEFF${csvRows.join('\n')}`;
@@ -3346,8 +3366,8 @@ function ImportLeadView({ onCancel, onConfirm, onPartialImport, showToast, exist
                 </div>
               </div>
 
-              <div className="table-shell border border-slate-200">
-                <table className="w-full min-w-[720px] text-sm">
+              <div className="table-shell table-shell-dense">
+                <table className="console-table console-table-dense w-full min-w-[720px] text-sm">
                   <thead className="bg-slate-100 sticky top-0">
                     <tr>
                       <th className="px-4 py-3 text-left"><input type="checkbox" checked={pageAllSelected} onChange={(e) => handleToggleSelectAllCurrentPage(e.target.checked)} className="accent-emerald-600" /></th>
@@ -3366,12 +3386,12 @@ function ImportLeadView({ onCancel, onConfirm, onPartialImport, showToast, exist
                     {pageRows.map((item) => (
                       <tr key={item.id} onClick={() => item.status === 'ok' && toggleRow(item.id)} className={`border-t border-slate-200 ${item.status === 'ok' ? 'cursor-pointer' : 'cursor-default'} ${item.status === 'error' ? 'bg-red-50' : item.status === 'duplicate' ? 'bg-orange-50' : 'hover:bg-emerald-50'}`}>
                         <td className="px-4 py-3" onClick={e => e.stopPropagation()}><input type="checkbox" disabled={item.status !== 'ok'} checked={selectedRows.has(item.id)} onChange={() => toggleRow(item.id)} className="accent-emerald-600" /></td>
-                        <td className="px-4 py-3"><input type="text" value={item.name || ''} onChange={(e) => handleEdit(item.id, 'name', e.target.value)} className="w-full px-2 py-1 border border-slate-200 bg-white text-sm" /></td>
-                        <td className="px-4 py-3"><input type="text" value={item.companyName || ''} onChange={(e) => handleEdit(item.id, 'companyName', e.target.value)} className="w-full px-2 py-1 border border-slate-200 bg-white text-sm" /></td>
-                        <td className="px-4 py-3"><input type="text" value={item.position || ''} onChange={(e) => handleEdit(item.id, 'position', e.target.value)} className="w-full px-2 py-1 border border-slate-200 bg-white text-sm" /></td>
-                        <td className="px-4 py-3"><input type="text" value={item.phone || ''} onChange={(e) => handleEdit(item.id, 'phone', e.target.value)} className="w-full px-2 py-1 border border-slate-200 bg-white text-sm" /></td>
-                        <td className="px-4 py-3"><input type="text" value={item.email || ''} onChange={(e) => handleEdit(item.id, 'email', e.target.value)} className="w-full px-2 py-1 border border-slate-200 bg-white text-sm" /></td>
-                        <td className="px-4 py-3"><input type="text" value={item.industry || ''} onChange={(e) => handleEdit(item.id, 'industry', e.target.value)} className="w-full px-2 py-1 border border-slate-200 bg-white text-sm" /></td>
+                        <td className="px-4 py-3"><input type="text" value={item.name || ''} onChange={(e) => handleEdit(item.id, 'name', e.target.value)} className="console-table-input" /></td>
+                        <td className="px-4 py-3"><input type="text" value={item.companyName || ''} onChange={(e) => handleEdit(item.id, 'companyName', e.target.value)} className="console-table-input" /></td>
+                        <td className="px-4 py-3"><input type="text" value={item.position || ''} onChange={(e) => handleEdit(item.id, 'position', e.target.value)} className="console-table-input" /></td>
+                        <td className="px-4 py-3"><input type="text" value={item.phone || ''} onChange={(e) => handleEdit(item.id, 'phone', e.target.value)} className="console-table-input" /></td>
+                        <td className="px-4 py-3"><input type="text" value={item.email || ''} onChange={(e) => handleEdit(item.id, 'email', e.target.value)} className="console-table-input" /></td>
+                        <td className="px-4 py-3"><input type="text" value={item.industry || ''} onChange={(e) => handleEdit(item.id, 'industry', e.target.value)} className="console-table-input" /></td>
                         <td className="px-4 py-3">
                           {item.enrichmentSource ? (
                             <div className="flex flex-col gap-1">
@@ -3592,7 +3612,7 @@ function AutoAssignView({ onClose, autoAssignConfig, setAutoAssignConfig, assign
         ) : (
           <div className="flex-1 overflow-y-auto p-8 bg-slate-50 custom-scrollbar">
             <div className="bg-white border border-slate-200 overflow-hidden shadow-sm">
-              <table className="w-full min-w-[780px] text-sm text-left">
+              <table className="console-table w-full min-w-[780px] text-sm text-left">
                 <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs font-semibold">
                   <tr>
                     <th className="px-6 py-4">派发时间</th>
@@ -3659,13 +3679,13 @@ function AutoAssignView({ onClose, autoAssignConfig, setAutoAssignConfig, assign
                                 }
 
                                 return ownerTables.map(([owner, items]) => (
-                                  <div key={owner} className="bg-white border border-slate-200 shadow-sm overflow-hidden">
+                                  <div key={owner} className="table-shell overflow-hidden rounded-none shadow-none">
                                     <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                                       <span className="text-xs font-bold text-slate-700">负责人：{owner}</span>
                                       <span className="text-[11px] text-slate-500">{items.length} 条</span>
                                     </div>
                                     <div className="overflow-x-auto">
-                                      <table className="w-full min-w-[560px] text-xs text-left">
+                                      <table className="console-table console-table-dense w-full min-w-[560px] text-xs text-left">
                                         <thead className="text-slate-500 bg-white border-b border-slate-100">
                                           <tr>
                                             <th className="px-4 py-2.5 font-semibold">公司名</th>

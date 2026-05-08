@@ -21,10 +21,10 @@ export default function AIAssignRoutePage({ showToast }) {
     try {
       await dispatch(confirmAssignments(previewAssignments)).unwrap();
       dispatch(setAIAssignSelection([]));
-      showToast('✅ AI 分配结果已回写到后端与全局状态', 'success');
+      showToast('✅ AI 分配结果已保存，负责人已更新', 'success');
       return true;
     } catch (error) {
-      showToast(`❌ AI 分配写入失败：${error.message}`, 'error');
+      showToast(`❌ AI 分配保存失败：${error.message}`, 'error');
       return false;
     }
   }, [dispatch, showToast]);

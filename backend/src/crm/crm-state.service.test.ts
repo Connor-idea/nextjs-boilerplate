@@ -28,18 +28,18 @@ describe('CrmStateService', () => {
     const service = new CrmStateService(gateway as never);
 
     const snapshot = service.confirmAssignments([
-      { id: 5, owner: '李四', reason: '联调验证' },
+      { id: 5, owner: '蔡文嘉', reason: '联调验证' },
     ]);
 
     const updatedLead = snapshot.leads.find((lead) => lead.id === 5);
 
     expect(updatedLead).toMatchObject({
-      owner: '李四',
+      owner: '蔡文嘉',
       status: '二次分配线索',
     });
     expect(updatedLead?.history.at(-1)).toMatchObject({
       type: '分配',
-      to: '李四',
+      to: '蔡文嘉',
       reason: '联调验证',
     });
     expect(snapshot.assignLogs[0]).toMatchObject({
@@ -72,7 +72,7 @@ describe('CrmStateService', () => {
     targetLead.history.push({
       id: 'follow-1',
       date: '2026-05-06 10:00',
-      sales: '张三',
+      sales: '戴贤亮',
       type: '提交跟进',
       contact: '张一鸣',
       note: '已与客户确认报价窗口。',
@@ -86,7 +86,7 @@ describe('CrmStateService', () => {
     });
 
     const updatedLead = snapshot.leads.find((lead) => lead.id === 1);
-    const profile = snapshot.profiles.find((item) => item.name === '张三');
+  const profile = snapshot.profiles.find((item) => item.name === '戴贤亮');
 
     expect(updatedLead).toMatchObject({
       trackStatus: 'completed',

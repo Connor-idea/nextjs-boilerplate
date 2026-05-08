@@ -1,8 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { confirmAssignments, fetchBootstrapData, markNotificationsRead, syncLeadSnapshot, syncSupplierBills } from './thunks';
+import { DEFAULT_USER_ROLE } from '../constants/roles';
 
 const initialState = {
-  userRole: 'manager',
+  userRole: DEFAULT_USER_ROLE,
   sidebarOpen: false,
   connectionStatus: 'connecting',
   notifications: [],

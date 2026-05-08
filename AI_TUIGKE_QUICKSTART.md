@@ -1,304 +1,86 @@
-# AI 推客快速开始指南
+# AI 推客快速上手
 
-## 📌 概览
+## 这个模块做什么
 
-**AITuigke.jsx** 是一个完整的企业级销售线索跟进系统，集成：
-- 🤖 AI 推荐评分与建议
-- 👥 联系人图谱管理  
-- 📊 跟进历史时间轴
-- 📝 表单工作流管理
-- 🎯 批量线索处理
+AI 推客用于帮助销售快速判断客户机会、查看推荐话术，并记录跟进处理结果。
 
----
+## 谁适合使用
 
-## 🎯 核心功能模块
+- 销售专员：处理个人客户机会。
+- 销售组长：查看本组推进情况并做指导。
+- 销售总监：查看整体推荐质量和重点客户推进情况。
 
-### 1️⃣ **线索目录抽屉** (DirectoryDrawer)
-- 快速切换线索
-- 分类展示：待跟进 / 已处理 / 暂存草稿
-- 支持骨架屏加载动画
+## 使用流程
 
-### 2️⃣ **公司信息展示** (CompanyInfoSection)
-- 企业基础信息卡片
-- AI 业务需求分析
-- 风险提示与动态更新
-- 手动备注功能（只增不删）
+### 1. 打开 AI 推客
 
-### 3️⃣ **历史跟进记录** (FollowUpHistorySection)
-- 时间轴展示所有跟进动作
-- 支持折叠/展开
-- 操作类型分类（线索无效/退回/正常跟进）
+从“销售线索”下进入“AI推客”。
 
-### 4️⃣ **联系人图谱** (ContactsSection)
-- 多人管理
-- 一键复制联系方式
-- AI 推荐破冰话术
-- 联系人备注同步
+### 2. 查看推荐客户
 
-### 5️⃣ **悬浮操作表单** (ActionSection)
-- 填写跟进记录
-- 标记线索无效
-- 退回客户至公海
-- 暂存为草稿
+重点关注：
 
----
+- 客户当前意向
+- 推荐原因
+- 推荐话术
+- 最近跟进记录
 
-## 🚀 集成步骤
+### 3. 记录处理结果
 
-### Step 1: 导入模块
-```javascript
-// 在你的路由文件中
-import AITuigkeApp from '@/modules/AITuigke';
+常见结果包括：
 
-// 配置路由或菜单
-<Route path="/ai-tuigke" element={<AITuigkeApp />} />
-```
+- 已跟进
+- 待继续观察
+- 暂不适合推进
+- 退回线索池
 
-### Step 2: 关键 Props 说明
+### 4. 补充客户备注
 
-该应用为**自包含组件**，无需传入 Props，使用内部状态管理。
+在客户备注中记录：
 
-```javascript
-// AITuigkeApp 内部状态：
-- leads：线索数组
-- currentLeadId：当前选中线索ID
-- isLoading：加载状态
-- toastMessage：通知消息
-```
+- 当前需求
+- 联系人反馈
+- 下一步计划
+- 风险点
 
-### Step 3: 数据对接
+## 推荐使用方式
 
-修改 `initialLeads` 常量以连接真实数据源：
+### 销售专员
 
-```javascript
-// 调用你的后端 API
-const fetchLeads = async () => {
-  const response = await fetch('/api/leads');
-  return response.json();
-};
+- 每天先处理高意向客户。
+- 跟进后立即补充结果。
+- 将无法推进的客户及时标记清楚。
 
-// 在组件中替换
-const [leads, setLeads] = useState(initialLeads);
-// 改为：
-useEffect(() => {
-  fetchLeads().then(setLeads);
-}, []);
-```
+### 销售组长
 
----
+- 每天查看组内重点客户推进情况。
+- 对卡住的客户给出话术或节奏建议。
+- 关注是否存在长期无结果客户。
 
-## 📊 数据结构
+### 销售总监
 
-### Lead 对象格式
-```javascript
-{
-  id: 'LD-2024-08997',
-  name: '企业名称',
-  status: 'pending' | 'completed' | 'draft',
-  score: 99,  // AI评分 0-100
-  time: '11:00',
-  daysUncontacted: 3,
-  source: '线索来源描述',
-  companyNotes: [
-    {
-      id: 201,
-      text: '备注内容',
-      date: '2024-03-20 14:00'
-    }
-  ],
-  history: [
-    {
-      id: 3,
-      date: '2024-02-10 16:00',
-      sales: '跟进人姓名',
-      type: '线下拜访',
-      contact: '联系人姓名',
-      note: '跟进记录',
-      tag: '标记'
-    }
-  ]
-}
-```
+- 关注团队整体推荐质量。
+- 关注高价值客户是否被及时推进。
+- 关注各组是否存在处理节奏差异。
 
-### Contact 对象格式
-```javascript
-{
-  id: 1,
-  name: '张一鸣',
-  position: '销售副总裁',
-  tags: ['推荐触达', '决策者'],
-  phones: ['138-xxxx-8888'],
-  wechat: 'zhang_sales_vp',
-  email: 'zym@company.com',
-  social: '抖音: xx (1.2w粉)',
-  pitch: 'AI推荐话术',
-  aiAdvice: 'AI跟进建议',
-  notes: [
-    {
-      id: 101,
-      text: '备注',
-      date: '2024-03-25 10:30'
-    }
-  ]
-}
-```
+## 常看信息
 
----
+- 客户行业与规模
+- 推荐理由
+- 当前优先级
+- 跟进时间轴
+- 最终处理结论
 
-## 🎨 样式定制
+## 常见问题
 
-### Tailwind 颜色方案
-| 元素 | 颜色 | Tailwind 类 |
-|------|------|-----------|
-| 主按钮 | 蓝色 | bg-blue-600 |
-| 成功提示 | 绿色 | bg-emerald-50 |
-| 警告提示 | 橙色 | bg-orange-500 |
-| 错误提示 | 红色 | bg-red-600 |
-| AI推荐 | 紫色 | from-indigo-50 |
+### 推荐客户很多，先看哪些？
 
-### 快速修改配色
-```javascript
-// 在组件中搜索替换 Tailwind 类
-'bg-blue-600' → 'bg-purple-600'  // 修改主题色
-'text-emerald-700' → 'text-green-700'  // 修改成功色
-```
+优先处理高意向、高客单和临近成交的客户。
 
----
+### 已处理客户还要不要补充备注？
 
-## 🔧 常见问题解答
+需要，备注是后续复盘和管理查看的重要依据。
 
-### Q1: 如何实现真实的数据保存？
-**A**: 在每个 handleSave* 函数中添加 API 调用：
-```javascript
-const handleSaveNote = async () => {
-  // 现有逻辑...
-  await fetch('/api/notes', {
-    method: 'POST',
-    body: JSON.stringify({ leadId, note: newNoteText })
-  });
-};
-```
+### 什么情况适合退回？
 
-### Q2: 如何与 CRM 主系统集成？
-**A**: 通过状态提升或 Context：
-```javascript
-// 在上级组件中共享状态
-<AITuigkeApp leads={globalLeads} onUpdate={updateGlobalLeads} />
-```
-
-### Q3: 如何禁用某些功能？
-**A**: 添加权限判断：
-```javascript
-{userRole === 'admin' && (
-  <button onClick={handleDelete}>删除</button>
-)}
-```
-
-### Q4: 如何支持移动端适配？
-**A**: 已内置 Tailwind 响应式设计，仅需调整：
-```javascript
-// 修改断点关键字
-'sm:w-[540px]' → 'md:w-[540px]'  // 更大屏幕
-'xl:col-span-7' → 'lg:col-span-6'  // 调整布局
-```
-
----
-
-## 📱 响应式设计支持
-
-| 设备 | 宽度 | 表现 |
-|------|------|------|
-| 手机 | < 640px | 单列布局，侧边栏隐藏 |
-| 平板 | 640-1024px | 两列布局 |
-| 桌面 | > 1024px | 三栏完整布局 |
-
----
-
-## ⚡ 性能优化技巧
-
-### 1. 减少重新渲染
-```javascript
-// ✅ 使用 React.memo 包装列表项
-const LeadItem = React.memo(({ lead }) => (...));
-```
-
-### 2. 虚拟化长列表
-```javascript
-// 当联系人超过 100+ 时，使用 react-window
-import { FixedSizeList } from 'react-window';
-```
-
-### 3. 代码分割
-```javascript
-// 动态导入组件
-const AITuigke = lazy(() => import('./modules/AITuigke'));
-```
-
----
-
-## 🐛 调试技巧
-
-### 启用 React DevTools
-```javascript
-// 在浏览器 DevTools → React 标签下：
-1. 选中组件
-2. 查看 Props 和 State
-3. 设置断点跟踪状态变化
-```
-
-### 检查性能
-```javascript
-// Chrome DevTools → Performance 标签：
-1. 记录操作
-2. 查找长任务 (> 50ms)
-3. 优化关键路径
-```
-
-### 检查内存泄漏
-```javascript
-// Chrome DevTools → Memory 标签：
-1. 获取堆快照
-2. 分离对象（detached nodes）
-3. 识别增大的数组
-```
-
----
-
-## 📚 技术栈
-
-| 库 | 版本 | 用途 |
-|----|------|------|
-| React | 18.x | UI 框架 |
-| Tailwind CSS | 3.x | 样式 |
-| Lucide React | Latest | 图标 |
-| Vite | 4.5.x | 构建工具 |
-
----
-
-## 🔒 安全考虑
-
-⚠️ **注意**：
-- 复制功能使用 `document.execCommand()` (已过时但兼容性好)  
-  → 建议将来迁移到 Clipboard API
-- Toast 中的消息日志暴露用户操作  
-  → 生产环境需添加敏感词过滤
-
-```javascript
-// 推荐改进
-const secureCopy = async (text) => {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch (err) {
-    console.error('Clipboard API error');
-  }
-};
-```
-
----
-
-## 📞 支持与反馈
-
-遇到问题？提交 GitHub Issue 或联系开发团队。
-
-**最后更新**: 2026-04-15  
-**维护状态**: ✅ Active
+确认短期无法推进、信息无效或不匹配当前业务方向时可退回。

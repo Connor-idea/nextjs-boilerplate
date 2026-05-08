@@ -1005,8 +1005,8 @@ function SalesDetail({ user, onBack, onSave }) {
                     当月合同明细 <span className="text-xs font-normal text-slate-500 ml-2">(匹配指标：当月达成金额)</span>
                   </h4>
                 </div>
-                <div className="bg-white border border-slate-200 overflow-x-auto shadow-sm">
-                  <table className="w-full text-left text-sm whitespace-nowrap">
+                <div className="table-shell">
+                  <table className="console-table w-full text-left text-sm whitespace-nowrap">
                     <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500">
                       <tr>
                         <th className="px-5 py-3.5 font-medium">客户名称</th>
@@ -1054,7 +1054,7 @@ function SalesDetail({ user, onBack, onSave }) {
                   </div>
                   
                   <div className="overflow-x-auto flex-grow max-h-[420px] overflow-y-auto">
-                    <table className="w-full text-left text-sm whitespace-nowrap">
+                    <table className="console-table w-full text-left text-sm whitespace-nowrap">
                       <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 sticky top-0 z-10 shadow-sm">
                         <tr>
                           <th className="px-4 py-3 font-medium">客户名称</th>
@@ -1183,7 +1183,7 @@ function SalesDetail({ user, onBack, onSave }) {
                 </div>
                 
                 <div className="overflow-x-auto max-h-[350px] overflow-y-auto">
-                  <table className="w-full text-left text-sm whitespace-nowrap">
+                  <table className="console-table w-full text-left text-sm whitespace-nowrap">
                     <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 sticky top-0 z-10 shadow-sm">
                       <tr>
                         <th className="px-5 py-3 font-medium">客户/线索名称</th>

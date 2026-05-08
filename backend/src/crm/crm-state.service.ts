@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CrmGateway } from './crm.gateway';
 import { createInitialSnapshot, CrmSnapshot, LeadRecord, NotificationRecord, SupplierBillRecord, deriveProfilesFromLeads } from './seed-data';
 
@@ -12,7 +12,7 @@ interface LeadSnapshotPayload {
 export class CrmStateService {
   private state = createInitialSnapshot();
 
-  constructor(private readonly gateway: CrmGateway) {}
+  constructor(@Inject(CrmGateway) private readonly gateway: CrmGateway) {}
 
   getBootstrap(): CrmSnapshot {
     return this.createSnapshot();

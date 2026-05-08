@@ -1,301 +1,120 @@
-# CRM 原型 - 快速设置指南
-
-## 🎯 快速开始（3 步）
-
-### 第一步: 检查 Node.js 环境
-```bash
-node --version    # 应该是 v14 或更高版本
-npm --version     # 应该是 v6 或更高版本
-```
-
-### 第二步: 安装依赖
-```bash
-cd "/Users/connor/Desktop/靠铺/CRM/AI 原型/CRM原型"
-npm install
-```
-
-### 第三步: 启动开发服务器
-```bash
-npm run dev
-```
-
-浏览器会自动打开 http://127.0.0.1:3000
-
----
-
-## 📦 依赖概览
-
-### 必需库（已安装）
-
-| 库名 | 版本 | 用途 |
-|------|------|------|
-| `react` | 18.2.0 | UI 框架 |
-| `react-dom` | 18.2.0 | DOM 渲染 |
-| `lucide-react` | 0.263.1 | 图标库 |
-| `tailwindcss` | 3.3.0 | 样式框架 |
-| `vite` | 4.5.14 | 构建工具 |
-
-### 开发工具（已安装）
-- `@vitejs/plugin-react` - React 热更新
-- `postcss` - CSS 后处理
-- `autoprefixer` - 浏览器前缀
-
----
-
-## 🎨 UI 框架说明
-
-### Tailwind CSS - 样式系统
-
-**优点:**
-- 原子化设计，无需写 CSS
-- 响应式类名内置（`md:`, `lg:` 等）
-- 内置暗黑模式支持
-- 性能优化（只打包用到的样式）
-
-**常用类名示例:**
-```jsx
-<div className="flex items-center justify-between p-6 bg-white rounded-lg border border-slate-200 shadow-sm">
-  {/* flex: 弹性布局 */}
-  {/* items-center: 垂直居中 */}
-  {/* justify-between: 水平分散 */}
-  {/* p-6: 内间距 */}
-  {/* bg-white: 白色背景 */}
-  {/* rounded-lg: 圆角 */}
-  {/* border border-slate-200: 边框 */}
-  {/* shadow-sm: 阴影 */}
-</div>
-```
-
-### Lucide Icons - 图标库
-
-**优点:**
-- 精美 SVG 图标
-- 可自定义颜色和大小
-- 一致的设计风格
-- 完全可配置
-
-**使用示例:**
-```jsx
-import { Building2, Search, Plus } from 'lucide-react';
-
-<Building2 size={24} className="text-blue-600" />
-<Search size={16} className="text-slate-400" />
-<Plus size={18} className="text-white" />
-```
+# CRM 使用上手指南
 
----
+## 适用对象
 
-## 📁 项目结构说明
+本指南面向首次使用系统的业务人员，帮助快速理解页面入口、角色差异和常用操作。
 
-### src/components - 共享组件
-存放在多个模块中都能用到的组件
+## 第一次进入系统先做什么
 
-```
-components/
-├── SystemSidebar.jsx   # 左侧导航栏（模块切换）
-├── SystemHeader.jsx    # 顶部头部（搜索、用户菜单）
-└── Toast.jsx          # 消息提示组件（全局通知）
-```
+### 1. 查看当前账号
 
-### src/modules - 功能模块
-每个模块代表应用的一个主要功能区域
+进入系统后，先看右上角当前账号名称，确认自己所在角色。
 
-```
-modules/
-├── LeadsModule.jsx     # 线索管理（客户线索CRUD）
-├── PitchModule.jsx     # AI推客（智能客户分析）
-└── ProfileModule.jsx   # 销售画像（业绩分析）
-```
+### 2. 熟悉左侧菜单
 
-### src/App.jsx - 主应用
-路由分发和全局状态管理
+当前菜单顺序如下：
 
-```
-App.jsx
-├── 状态管理（activeModule, userRole）
-├── 模块路由
-└── 全局 Toast 消息
-```
+1. 首页
+2. 员工管理
+3. 渠道管理
+4. 客户管理
+5. 销售线索
+6. 工作报告
+7. 财务管理
+8. 系统设置
+9. 个人中心
 
----
+### 3. 按角色进入常用页面
 
-## 🚀 常见开发任务
+- 销售专员：先看“我的工作台”，再看“销售线索”和“AI日报/周报”。
+- 销售组长：先看“团队作战图”，再看“直属员工”和“AI日报/周报”。
+- 销售总监：重点看“团队作战图”“督促规则配置”“提成管理”。
+- 财务：重点看“财务管理”下各页面。
 
-### 任务 1: 修改样式
-只需修改 `className` 中的 Tailwind 类名，保存后自动热更新
-
-```jsx
-// 修改前
-<button className="px-4 py-2 bg-blue-600 text-white rounded-full">
-  点击
-</button>
-
-// 修改后
-<button className="px-6 py-3 bg-purple-600 text-white rounded-lg shadow-lg hover:bg-purple-700">
-  点击
-</button>
-```
-
-### 任务 2: 添加新图标
-1. 在 Lucide 官网查找图标: https://lucide.dev/
-2. 在文件顶部导入
-
-```jsx
-import { StarIcon, HeartIcon, ShareIcon } from 'lucide-react';
-
-// 使用
-<StarIcon size={20} className="text-yellow-500" />
-```
+## 主要页面怎么用
 
-### 任务 3: 修改颜色方案
-编辑 `src/index.css` 或使用 Tailwind 内置颜色
-
-```jsx
-// 使用预设颜色
-<div className="bg-blue-50 text-blue-700 border-blue-200">
-  蓝色方案
-</div>
-
-// 自定义
-<div style={{ color: '#FF6B6B' }}>
-  自定义颜色
-</div>
-```
-
----
-
-## 🎮 交互演示
-
-### 查看应用功能
-
-1. **左侧导航栏** - 点击不同模块切换功能
-2. **顶部头部** - 选择不同的用户角色（主管/销售）
-3. **消息提示** - 操作后会看到成功/失败的 Toast
-4. **响应式** - 缩小浏览器窗口看移动端效果
+### 首页
 
-### 测试用户角色
+- 数据概览：快速看整体数据。
+- 我的工作台：看今日待办、个人客户和个人业绩。
+- 团队作战图：看团队目标、成员排行和预警。
 
-- **主管视角**: 看到全部数据和管理功能
-- **销售视角**: 只能看到自己的数据
-
----
-
-## 📚 学习资源
-
-### Tailwind CSS
-- 官方文档: https://tailwindcss.com/docs
-- 类名参考: https://tailwindcss.com/docs/margin
-- 配置指南: https://tailwindcss.com/docs/configuration
+### 员工管理
 
-### Lucide Icons
-- 官方网站: https://lucide.dev/
-- 图标搜索: https://lucide.dev/icons
-- React 用法: https://lucide.dev/guide/packages/lucide-react
+- 全部员工：看全员信息。
+- 直属员工：看自己负责的成员。
+- 销售画像：看成员工作表现和客户分布。
 
-### React 18
-- 官方文档: https://react.dev/
-- Hooks 指南: https://react.dev/reference/react
-
-### Vite
-- 官方文档: https://vitejs.dev/
-- 配置参考: https://vitejs.dev/config/
+### 客户与线索
 
----
+- 客户管理：查看客户当前阶段和重点事项。
+- 线索管理：筛选、分配、跟进、退回线索。
+- AI 推客：查看 AI 推荐客户并记录结果。
 
-## 🔧 常见问题排查
+### 工作报告
 
-### 问题 1: 样式不生效
-**症状**: 修改 className 后没有变化
-**解决**:
-1. 检查 classroom 是否拼写正确
-2. 清除浏览器缓存（Ctrl+Shift+Delete）
-3. 重启开发服务器
+- 输入当天工作内容。
+- 生成日报预览。
+- 确认提交日报。
+- 查看历史和周报汇总。
 
-### 问题 2: 图标不显示
-**症状**: 图标位置显示空白
-**解决**:
-1. 确认导入语句正确
-2. 检查图标名称是否存在
-3. 硬刷新浏览器（Ctrl+Shift+R）
+### 财务管理
 
-### 问题 3: 热更新不工作
-**症状**: 修改代码后页面没有刷新
-**解决**:
-1. 检查文件是否成功保存
-2. 查看终端是否有错误信息
-3. 重启开发服务器：`npm run dev`
+- 供应商对账款：查看账单处理情况。
+- 提成管理：查看规则、月度汇总、发放状态。
+- 其他账单页：查看不同对象的账单与结算结果。
 
-### 问题 4: 端口 3000 已被占用
-**症状**: 启动时报错 "Port 3000 is already in use"
-**解决**:
-```bash
-# 方式 1: 改用其他端口
-# 编辑 vite.config.js，改变 port 值
+### 系统设置
 
-# 方式 2: 杀死占用进程 (macOS/Linux)
-lsof -i :3000
-kill -9 <PID>
+- 督促规则配置：仅管理层使用，用于维护督促规则。
 
-# 方式 2: 杀死占用进程 (Windows)
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
-```
+## 账号切换说明
 
----
+右上角可切换账号视角。切换后：
 
-## 🎯 下一步任务
+- 菜单会变化。
+- 可见数据范围会变化。
+- 可执行操作会变化。
 
-### 第 1 阶段: 熟悉现有代码
-- [ ] 审查 `src/App.jsx` 的全局架构
-- [ ] 理解 `SystemSidebar.jsx` 的模块切换逻辑
-- [ ] 查看各模块的文件结构
+如果发现某些页面在一个角色下可见，在另一个角色下不可见，属于正常权限控制。
 
-### 第 2 阶段: 实现基础功能
-- [ ] 完成线索详情页面
-- [ ] 添加搜索和过滤功能
-- [ ] 实现批量操作
+## 常见使用场景
 
-### 第 3 阶段: 数据可视化
-- [ ] 安装 `recharts`
-- [ ] 创建统计图表
-- [ ] 实现销售漏斗展示
+### 销售专员的一天
 
-### 第 4 阶段: 后端对接
-- [ ] 安装 `axios`
-- [ ] 实现 API 调用
-- [ ] 添加数据同步
+1. 打开“我的工作台”查看今日待办。
+2. 进入客户管理或线索管理处理重点客户。
+3. 在 AI 推客中记录跟进结果。
+4. 下班前提交日报。
 
----
+### 销售组长的一天
 
-## 📞 调试技巧
+1. 查看团队作战图。
+2. 关注成员排行和预警信息。
+3. 查看直属员工状态。
+4. 查看本组日报与提成情况。
 
-### 1. React Developer Tools
-安装浏览器扩展，查看组件树和状态
+### 财务的一天
 
-### 2. 控制台日志
-```jsx
-console.log('调试信息:', data);
-console.table(array);  // 表格显示
-```
+1. 查看账单和结算页面。
+2. 核对应发提成。
+3. 更新发放状态。
 
-### 3. Vite 快速启动命令
-```bash
-npm run dev -- --open          # 自动打开浏览器
-npm run build -- --mode test   # 测试模式构建
-```
+## 常见问题
 
----
+### 为什么我看不到某个菜单？
 
-## ✅ 开发检查清单
+不同角色看到的页面范围不同，请先确认当前账号角色。
 
-在提交代码前，确保：
+### 为什么数据范围不一样？
 
-- [ ] 所有功能都已测试
-- [ ] 没有控制台错误
-- [ ] 响应式在手机/平板正常
-- [ ] 代码遵循项目规范
-- [ ] 更新了相关文档
+系统会根据角色自动限制为个人、本组或全员范围。
 
----
+### 日报和周报有什么区别？
 
-**准备好开发了吗？** 开启终端，运行 `npm run dev`！🚀
+- 日报：记录当天工作。
+- 周报：汇总一周重点进展与下周计划。
+
+### 财务为什么看不到销售工作台？
+
+财务只保留财务相关业务入口，不显示销售看板和工作报告入口。

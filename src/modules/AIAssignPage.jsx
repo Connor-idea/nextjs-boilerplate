@@ -276,7 +276,7 @@ export default function AIAssignPage({ showToast, initialLeads = [], onBack, onC
 
                 {memberLeads.length > 0 ? (
                   <div className="table-shell">
-                    <table className="w-full text-xs text-left">
+                    <table className="console-table console-table-dense w-full text-xs text-left">
                       <thead className="bg-slate-50/80 text-slate-500 font-semibold border-b border-slate-100">
                         <tr>
                           <th className="px-4 py-2.5 sm:px-5 w-8">#</th>
@@ -297,7 +297,7 @@ export default function AIAssignPage({ showToast, initialLeads = [], onBack, onC
                               <select
                                 value={lead.owner}
                                 onChange={e => handleOwnerChange(lead.id, e.target.value)}
-                                className="text-xs border border-slate-200 px-2 py-1 outline-none focus:border-purple-400 bg-white cursor-pointer hover:bg-slate-50 transition-colors"
+                                className="console-table-select cursor-pointer hover:bg-console-surface-alt"
                               >
                                 {teamMembers.map(m => <option key={m} value={m}>{m}</option>)}
                               </select>
